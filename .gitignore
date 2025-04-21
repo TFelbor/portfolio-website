@@ -61,7 +61,7 @@ yarn-error.log*
 *.min.js.map
 
 # GitHub Pages specific
-_site/
+# _site/ - Commented out to allow GitHub Pages to build
 .jekyll-cache/
 .jekyll-metadata
 

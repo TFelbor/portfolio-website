@@ -1,0 +1,4 @@
+theme: jekyll-theme-minimal
+baseurl: /portfolio-website
+url: https://tfelbor.github.io
+include: [portfolio_components]
