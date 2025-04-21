@@ -171,9 +171,10 @@
 						const end = start + projectsPerPage;
 						const pageProjects = allProjects.slice(start, end);
 
-						// Only scroll to projects section if it's not the initial page load or if there's a hash in the URL
+						// Only scroll to projects section if explicitly requested via pagination
+						// Do not scroll on initial page load or when showing intro
 						const projectsSection = document.getElementById('other-projects');
-						if (projectsSection && (window.location.hash || window.scrollY > 0)) {
+						if (projectsSection && page > 1) {
 							setTimeout(() => {
 								projectsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 							}, 100);
@@ -247,7 +248,14 @@
 					window.displayProjectsPage = displayProjectsPage;
 				}
 
-				window.addEventListener('load', initializeProjects);
+				// Ensure we're at the top of the page on initial load
+					window.addEventListener('load', function() {
+						// Force scroll to top
+						window.scrollTo(0, 0);
+
+						// Initialize projects after a small delay to ensure proper order
+						setTimeout(initializeProjects, 100);
+					});
 			</script>
 
 	</body>

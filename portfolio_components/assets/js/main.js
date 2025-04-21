@@ -115,11 +115,14 @@
 			window.setTimeout(function() {
 				$body.removeClass('is-preload');
 
-				// Ensure we're at the top of the page on initial load
-				if (!window.location.hash && window.scrollY === 0) {
-					window.scrollTo(0, 0);
+				// Always ensure we're at the top of the page on initial load
+				window.scrollTo(0, 0);
+
+				// Make sure intro is visible
+				if ($('#intro').length > 0) {
+					$('#intro').removeClass('hidden');
 				}
-			}, 100);
+			}, 50);
 		});
 
 	// Scrolly.
@@ -220,11 +223,9 @@
 					}).trigger('resize.ie-intro-fix');
 				}
 
-			// Check if we should show the intro (based on URL hash)
-			if (window.location.hash === '#intro') {
-				$intro.removeClass('hidden');
-				window.scrollTo(0, 0);
-			}
+			// Always show the intro on initial page load
+			$intro.removeClass('hidden');
+			window.scrollTo(0, 0);
 
 			// Hide intro on scroll (> small).
 				breakpoints.on('>small', function() {
@@ -236,8 +237,8 @@
 						top: '25vh',
 						bottom: '-50vh',
 						enter: function() {
-							// Only hide intro if we're not explicitly showing it via hash
-							if (window.location.hash !== '#intro') {
+							// Don't hide intro on initial page load
+							if (window.pageYOffset > 100) {
 								$intro.addClass('hidden');
 							}
 						},
@@ -258,8 +259,8 @@
 						top: '15vh',
 						bottom: '-15vh',
 						enter: function() {
-							// Only hide intro if we're not explicitly showing it via hash
-							if (window.location.hash !== '#intro') {
+							// Don't hide intro on initial page load
+							if (window.pageYOffset > 100) {
 								$intro.addClass('hidden');
 							}
 						},
