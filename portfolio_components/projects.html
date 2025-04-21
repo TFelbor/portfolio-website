@@ -6,12 +6,15 @@
 -->
 <html>
 	<head>
-		<title>Projects - My Portfolio</title>
+		<title>Projects</title>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="icon" type="image/png" href="images/logo.png" />
+		<!-- Biography icons created by manshagraphics - Flaticon (https://www.flaticon.com/free-icons/biography) -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<link rel="stylesheet" href="assets/css/project-tags.css" />
 		<link rel="stylesheet" href="assets/css/project-grid-fix.css" />
+		<link rel="stylesheet" href="assets/css/mobile-enhancements.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 		<style>
 			/* Modal/Overlay styles */
@@ -26,6 +29,7 @@
 				z-index: 1000;
 				overflow-y: auto;
 				animation: fadeIn 0.3s ease-in-out;
+				-webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 			}
 
 			.project-details {
@@ -41,6 +45,27 @@
 				animation: slideIn 0.3s ease-in-out;
 				border: 1px solid rgba(0, 0, 0, 0.1);
 				border-left: 4px solid #4acaa8;
+			}
+
+			/* Mobile adjustments for project details */
+			@media screen and (max-width: 736px) {
+				.project-details {
+					width: 95%;
+					margin: 2% auto;
+					padding: 1.5rem;
+				}
+
+				.project-readme {
+					padding: 1rem;
+					max-height: 60vh;
+				}
+
+				.close-modal {
+					top: 0.5rem;
+					right: 0.5rem;
+					font-size: 1.8rem;
+					padding: 0.5rem;
+				}
 			}
 
 			.project-readme {

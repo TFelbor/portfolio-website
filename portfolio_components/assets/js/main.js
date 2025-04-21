@@ -122,6 +122,24 @@
 				if ($('#intro').length > 0) {
 					$('#intro').removeClass('hidden');
 				}
+
+				// Mobile-specific enhancements
+				if (browser.mobile) {
+					// Improve touch targets
+					$('a, button, .button, .actions li a').css({
+						'min-height': '44px',
+						'display': 'inline-flex',
+						'align-items': 'center',
+						'justify-content': 'center'
+					});
+
+					// Add active state for touch feedback
+					$('a, button, .button').on('touchstart', function() {
+						$(this).addClass('touch-active');
+					}).on('touchend touchcancel', function() {
+						$(this).removeClass('touch-active');
+					});
+				}
 			}, 50);
 		});
 
@@ -238,7 +256,7 @@
 						bottom: '-50vh',
 						enter: function() {
 							// Don't hide intro on initial page load
-							if (window.pageYOffset > 100) {
+							if (window.scrollY > 100) {
 								$intro.addClass('hidden');
 							}
 						},
@@ -260,7 +278,7 @@
 						bottom: '-15vh',
 						enter: function() {
 							// Don't hide intro on initial page load
-							if (window.pageYOffset > 100) {
+							if (window.scrollY > 100) {
 								$intro.addClass('hidden');
 							}
 						},
