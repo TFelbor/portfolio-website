@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+package-lock.json
+yarn.lock
+
+# Build and distribution directories
+dist/
+build/
+out/
+.next/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache files
+.cache/
+.sass-cache/
+.eslintcache
+.stylelintcache
+.parcel-cache/
+
+# SASS/SCSS compiled files
+*.css.map
+*.sass.map
+*.scss.map
+
+# Local storage and browser caches
+.localStorage/
+.tmp/
+.temp/
+
+# Compiled JavaScript
+*.min.js.map
+
+# GitHub Pages specific
+_site/
+.jekyll-cache/
+.jekyll-metadata
+
+# Miscellaneous
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

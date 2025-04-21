@@ -1,0 +1,254 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>My Portfolio</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<link rel="stylesheet" href="assets/css/project-tags.css" />
+		<link rel="stylesheet" href="assets/css/project-grid-fix.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper" class="fade-in">
+
+				<!-- Intro -->
+					<div id="intro">
+						<h1>Hi There!,<br />
+						Welcome To...</h1>
+						<ul class="actions">
+							<li><a href="#header" class="button icon solid solo fa-arrow-down scrolly">Continue</a></li>
+						</ul>
+					</div>
+
+				<!-- Header -->
+					<header id="header">
+						<a href="home.html" class="logo">My Portfol.io</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li class="active"><a href="home.html">Home Page</a></li>
+							<li><a href="projects.html">Projects</a></li>
+							<li><a href="about.html">About Me</a></li>
+							<li><a href="contact.html">Get In Touch</a></li>
+						</ul>
+						<ul class="icons">
+							<li><a href="https://www.linkedin.com/in/tytusfelbor/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							<li><a href="https://github.com/TFelbor" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Featured Post -->
+							<article class="post featured" id="featured-project">
+								<!-- Will be populated by JavaScript -->
+							</article>
+
+						<!-- Posts -->
+							<section class="posts" id="other-projects">
+								<!-- Will be populated by JavaScript -->
+							</section>
+
+
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<section class="split contact">
+							<section class="alt">
+								<h3>Address</h3>
+								<p>Grajewska 15 <br />
+								Poznan, Poland 60-461</p>
+							</section>
+							<section>
+								<h3>Phone</h3>
+								<p><a href="tel:+48515426660">+48 515 426 660</a> <br />
+								<a href="tel:+12158631366">+1 (215) 863 1366</a></p>
+							</section>
+							<section>
+								<h3>Email</h3>
+								<p><a href="mailto:tytus.felbor@icloud.com">tytus.felbor@icloud.com</a></p>
+							</section>
+							<section>
+								<h3>Social</h3>
+								<ul class="icons alt">
+									<li><a href="https://www.linkedin.com/in/tytusfelbor/" class="icon brands alt fa-linkedin"><span class="label">LinkedIn</span></a></li>
+									<li><a href="https://github.com/TFelbor" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+								</ul>
+							</section>
+						</section>
+					</footer>
+
+				<!-- Copyright -->
+					<div id="copyright">
+						<ul><li>&copy; Tytus Felbor</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+					</div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+			<script src="assets/js/github-integration.js"></script>
+			<script>
+				async function initializeProjects() {
+					const projects = await fetchGitHubProjects();
+					if (!projects) return;
+
+					// Find the ai-asset-eval-team project
+					let featuredProject = projects.otherProjects.find(p => p.name === 'ai-asset-eval-team');
+
+					// If not found, fall back to mostRecent
+					if (!featuredProject) {
+						featuredProject = projects.mostRecent;
+					}
+
+					// Populate featured project
+					// Generate language tags HTML for featured project
+					const featuredLanguageTags = featuredProject.languages ?
+						featuredProject.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
+						'';
+
+					// Generate technology tags HTML for featured project
+					const featuredTechTags = featuredProject.technologies ?
+						featuredProject.technologies.map(tech => `<span class="tech-tag">${tech}</span>`).join('') :
+						'';
+
+					// Add special "most recent" tag
+					const specialTag = `<span class="special-tag language-tag">Most Recent</span>`;
+
+					const featuredHTML = `
+						<header class="major">
+							<h2><a href="${featuredProject.html_url}">${featuredProject.readmeTitle || featuredProject.name}</a></h2>
+							<p>${featuredProject.description || 'No description available'}</p>
+						</header>
+						<div class="tag-container">
+							${specialTag}
+							${featuredLanguageTags}
+						</div>
+						<div class="tag-container">
+							${featuredTechTags}
+						</div>
+						<ul class="actions special">
+							<li><a href="${featuredProject.html_url}" class="button large">View Project</a></li>
+						</ul>
+					`;
+					document.getElementById('featured-project').innerHTML = featuredHTML;
+
+					// Combine all projects, excluding the featured project
+					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects.filter(p => p.name !== 'ai-asset-eval-team')];
+
+					// Calculate pages
+					const projectsPerPage = 6;
+					const totalPages = Math.ceil(allProjects.length / projectsPerPage);
+					let currentPage = 1;
+
+					function displayProjectsPage(page) {
+						// Validate page number
+						page = parseInt(page);
+						if (isNaN(page) || page < 1) page = 1;
+						if (page > totalPages) page = totalPages;
+
+						// Calculate slice indices
+						const start = (page - 1) * projectsPerPage;
+						const end = start + projectsPerPage;
+						const pageProjects = allProjects.slice(start, end);
+
+						// Scroll to top of projects section
+						const projectsSection = document.getElementById('other-projects');
+						if (projectsSection) {
+							setTimeout(() => {
+								projectsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+							}, 100);
+						}
+
+						const projectsHTML = pageProjects.map((project, index) => {
+							const projectId = `home-project-${index}-${page}`;
+
+							// Generate language tags HTML
+							const languageTags = project.languages ?
+								project.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
+								'';
+
+							// Generate technology tags HTML
+							const techTags = project.technologies ?
+								project.technologies.map(tech => `<span class="tech-tag">${tech}</span>`).join('') :
+								'';
+
+							return `
+							<article>
+								<div class="project-card">
+									<div class="project-card-content">
+										<header class="project-card-header">
+											<h2 class="project-title"><a href="${project.html_url}" data-length="${(project.readmeTitle || project.name).length > 40 ? ((project.readmeTitle || project.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${project.readmeTitle || project.name}</a></h2>
+										</header>
+										<div class="tag-container">
+											${languageTags}
+										</div>
+										<div class="project-card-description">
+											<p>${project.description || 'No description available'}</p>
+										</div>
+										<div class="tag-container">
+											${techTags}
+										</div>
+										<div class="project-card-footer">
+											<ul class="actions special">
+												<li><a href="${project.html_url}" class="button">View Project</a></li>
+												<li><a href="projects.html" class="button alt">See Details</a></li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</article>
+						`;
+						}).join('');
+
+						// Add pagination if needed
+						const paginationHTML = totalPages > 1 ? `
+							<div class="pagination-container">
+								<div class="pagination">
+									${page > 1 ? `<a href="javascript:void(0)" onclick="displayProjectsPage(${page - 1}); return false;" class="button previous">Previous</a>` : '<span class="button previous disabled">Previous</span>'}
+									<span class="page-info">Page ${page} of ${totalPages}</span>
+									${page < totalPages ? `<a href="javascript:void(0)" onclick="displayProjectsPage(${page + 1}); return false;" class="button next">Next</a>` : '<span class="button next disabled">Next</span>'}
+								</div>
+							</div>
+						` : '';
+
+						document.getElementById('other-projects').innerHTML = projectsHTML + paginationHTML;
+					}
+
+					// This function is no longer needed as we'll use README titles instead
+					// Keeping it for backward compatibility
+					function formatProjectName(name) {
+						return name;
+					}
+
+					// Initial display
+					displayProjectsPage(1);
+
+					// Make displayProjectsPage available globally
+					window.displayProjectsPage = displayProjectsPage;
+				}
+
+				window.addEventListener('load', initializeProjects);
+			</script>
+
+	</body>
+</html>

@@ -1,0 +1,56 @@
+{
+  "mostRecent": {
+    "name": "AI Asset Evaluation Team",
+    "html_url": "https://github.com/TFelbor/ai-asset-eval-team",
+    "description": "AI-powered asset evaluation tool"
+  },
+  "portfolioProjects": [
+    {
+      "name": "A* for Robotics (JAVA & C++)",
+      "html_url": "https://github.com/TFelbor/Portfolio/tree/A_Star_Algorithm_Robotics_JAVA_C++",
+      "description": "Implementation of A* pathfinding algorithm for robotics applications",
+      "branch": "A_Star_Algorithm_Robotics_JAVA_C++"
+    }
+  ],
+  "otherProjects": [
+    {
+      "name": "AI Asset Evaluation Team",
+      "html_url": "https://github.com/TFelbor/ai-asset-eval-team",
+      "description": "AI-powered asset evaluation tool"
+    },
+    {
+      "name": "Python Trading Training",
+      "html_url": "https://github.com/TFelbor/python-trading-training",
+      "description": "Python scripts for algorithmic trading and backtesting"
+    },
+    {
+      "name": "AI Library",
+      "html_url": "https://github.com/TFelbor/ai-library",
+      "description": "Comprehensive library of AI algorithms and tools"
+    },
+    {
+      "name": "AI Financial Agent",
+      "html_url": "https://github.com/TFelbor/ai-financial-agent",
+      "description": "AI agent for financial analysis and decision making"
+    },
+    {
+      "name": "AI Hedge Fund",
+      "html_url": "https://github.com/TFelbor/ai-hedge-fund",
+      "description": "Forked, AI powered hedge fund simulation and strategy testing"
+    }
+  ],
+  "readmeContent": {
+
+    "A_Star_Algorithm_Robotics_JAVA_C++": "# A* Algorithm for Robotics\n\nThis project implements the A* pathfinding algorithm for robotics applications in both Java and C++.\n\n## Features\n\n- Efficient pathfinding for robot navigation\n- Obstacle avoidance\n- Optimized for real-time applications\n- Cross-platform implementation\n\n## Technologies Used\n\n- Java\n- C++\n- Robotics frameworks",
+
+    "ai-asset-eval-team": "# AI Asset Evaluation Team\n\nAn AI-powered tool for evaluating digital and physical assets.\n\n## Features\n\n- Automated asset valuation\n- Market trend analysis\n- Risk assessment\n- Portfolio optimization\n\n## Technologies Used\n\n- Python\n- TensorFlow\n- PyTorch\n- Financial APIs",
+
+    "python-trading-training": "# Python Trading Training\n\nA collection of Python scripts for algorithmic trading and backtesting.\n\n## Features\n\n- Backtesting framework\n- Strategy implementation\n- Market data analysis\n- Performance metrics\n\n## Technologies Used\n\n- Python\n- Pandas\n- NumPy\n- Matplotlib",
+
+    "ai-library": "# AI Library\n\nA comprehensive library of AI algorithms and tools.\n\n## Features\n\n- Machine learning algorithms\n- Deep learning models\n- Natural language processing tools\n- Computer vision utilities\n\n## Technologies Used\n\n- Python\n- TensorFlow\n- PyTorch\n- Hugging Face Transformers",
+
+    "ai-financial-agent": "# AI Financial Agent\n\nAn AI agent for financial analysis and decision making.\n\n## Features\n\n- Market analysis\n- Investment recommendations\n- Risk assessment\n- Portfolio management\n\n## Technologies Used\n\n- Python\n- Machine Learning\n- Financial APIs\n- Natural Language Processing",
+
+    "ai-hedge-fund": "# AI Hedge Fund\n\nAI-powered hedge fund simulation and strategy testing.\n\n## Features\n\n- Market simulation\n- Strategy backtesting\n- Risk management\n- Performance analytics\n\n## Technologies Used\n\n- Python\n- Machine Learning\n- Financial APIs\n- Statistical Analysis"
+  }
+}

@@ -1,0 +1,213 @@
+/* Project Tags CSS */
+
+/* Language and technology tags */
+.tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    min-height: 80px; /* Ensure container has height even when empty */
+    justify-content: center;
+}
+
+.language-tag, .tech-tag {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 1.5rem;
+    line-height: 1rem;
+    white-space: nowrap;
+}
+
+.language-tag:hover, .tech-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.language-tag {
+    background-color: #18bfef;
+    color: #ffffff;
+}
+
+.tech-tag {
+    background-color: #f5f5f5;
+    color: #212931;
+    border: 1px solid #dcdcdc;
+}
+
+/* Special tag for most recent project */
+.special-tag {
+    background-color: #ff3366;
+    color: #ffffff;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 51, 102, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 102, 0);
+    }
+}
+
+/* Additional styles for specific languages */
+.language-tag[data-lang="Java"] {
+    background-color: #b07219;
+}
+
+.language-tag[data-lang="Python"] {
+    background-color: #3572A5;
+}
+
+.language-tag[data-lang="C++"] {
+    background-color: #f34b7d;
+}
+
+.language-tag[data-lang="JavaScript"] {
+    background-color: #f1e05a;
+    color: #212931;
+}
+
+.language-tag[data-lang="TypeScript"] {
+    background-color: #2b7489;
+}
+
+.language-tag[data-lang="Algorithm"] {
+    background-color: #6a40fd;
+}
+
+/* Project card styles */
+.project-card {
+    background-color: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.project-card-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card-header {
+    margin-bottom: 1rem;
+}
+
+.project-card-description {
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.project-card-footer {
+    margin-top: auto;
+}
+
+/* Project details modal */
+.project-details {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 4px;
+    max-width: 800px;
+    margin: 0 auto;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.project-readme {
+    background-color: #f5f5f5;
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+}
+
+.project-readme h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.project-readme h2 {
+    font-size: 1.4rem;
+    margin: 1.5rem 0 1rem 0;
+}
+
+.project-readme h3 {
+    font-size: 1.2rem;
+    margin: 1.2rem 0 0.8rem 0;
+}
+
+.project-readme ul, .project-readme ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.project-readme li {
+    margin-bottom: 0.5rem;
+}
+
+.project-readme code {
+    background-color: #e8e8e8;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.project-readme pre {
+    background-color: #e8e8e8;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+/* Project modal */
+#project-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #212931;
+}
+
+.modal-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+}

@@ -1,0 +1,638 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Projects - My Portfolio</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<link rel="stylesheet" href="assets/css/project-tags.css" />
+		<link rel="stylesheet" href="assets/css/project-grid-fix.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<style>
+			/* Modal/Overlay styles */
+			.project-modal {
+				display: none;
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(0, 0, 0, 0.85);
+				z-index: 1000;
+				overflow-y: auto;
+				animation: fadeIn 0.3s ease-in-out;
+			}
+
+			.project-details {
+				position: relative;
+				margin: 5% auto;
+				width: 85%;
+				max-width: 900px;
+				background-color: #ffffff;
+				color: #3d4449;
+				border-radius: 5px;
+				padding: 2.5rem;
+				box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+				animation: slideIn 0.3s ease-in-out;
+				border: 1px solid rgba(0, 0, 0, 0.1);
+				border-left: 4px solid #4acaa8;
+			}
+
+			.project-readme {
+				max-height: 70vh;
+				overflow-y: auto;
+				padding: 2rem;
+				background-color: #f5f5f5;
+				border-radius: 5px;
+				margin: 1.5rem 0;
+				border-left: 4px solid #4acaa8;
+				line-height: 1.6;
+				font-size: 1rem;
+				color: #3d4449;
+			}
+
+			.toggle-details {
+				margin-top: 0.5rem;
+				margin-bottom: 0.5rem;
+			}
+
+			.close-modal {
+				position: absolute;
+				top: 1rem;
+				right: 1rem;
+				font-size: 1.5rem;
+				cursor: pointer;
+				color: #3d4449;
+				transition: color 0.2s ease;
+			}
+
+			.close-modal:hover {
+				color: #4acaa8;
+			}
+
+			/* Modal header and footer */
+			.project-details header {
+				margin-bottom: 1.5rem;
+				border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+				padding-bottom: 1rem;
+			}
+
+			.project-details header h2 {
+				color: #4acaa8;
+				margin-bottom: 0.5rem;
+				font-size: 2rem;
+				letter-spacing: normal !important;
+				word-spacing: normal !important;
+			}
+
+			.project-description {
+				font-size: 1.1rem;
+				line-height: 1.6;
+				color: #3d4449;
+			}
+
+			.modal-footer {
+				margin-top: 1.5rem;
+				border-top: 1px solid rgba(0, 0, 0, 0.1);
+				padding-top: 1.5rem;
+				text-align: center;
+			}
+
+			/* Animations */
+			@keyframes fadeIn {
+				from { opacity: 0; }
+				to { opacity: 1; }
+			}
+
+			@keyframes slideIn {
+				from { transform: translateY(-50px); opacity: 0; }
+				to { transform: translateY(0); opacity: 1; }
+			}
+
+			/* Scrollbar styling */
+			.project-readme::-webkit-scrollbar {
+				width: 8px;
+			}
+
+			.project-readme::-webkit-scrollbar-track {
+				background: rgba(0, 0, 0, 0.05);
+				border-radius: 4px;
+			}
+
+			.project-readme::-webkit-scrollbar-thumb {
+				background: rgba(74, 202, 168, 0.5);
+				border-radius: 4px;
+			}
+
+			.project-readme::-webkit-scrollbar-thumb:hover {
+				background: rgba(74, 202, 168, 0.7);
+			}
+
+			/* Readme content styling */
+			.project-readme h1 {
+				color: #4acaa8;
+				margin-bottom: 1.25rem;
+				font-size: 2rem;
+				letter-spacing: 0.05em;
+			}
+
+			.project-readme h2 {
+				color: #3d4449;
+				margin-top: 2rem;
+				margin-bottom: 1rem;
+				border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+				padding-bottom: 0.5rem;
+				font-size: 1.5rem;
+			}
+
+			.project-readme h3 {
+				color: #4acaa8;
+				margin-top: 1.5rem;
+				margin-bottom: 0.75rem;
+				font-size: 1.25rem;
+			}
+
+			.project-readme p {
+				margin-bottom: 1rem;
+				line-height: 1.6;
+				color: #3d4449;
+			}
+
+			.project-readme ul, .project-readme ol {
+				margin-left: 2rem;
+				margin-bottom: 1.5rem;
+				color: #3d4449;
+			}
+
+			.project-readme li {
+				margin-bottom: 0.5rem;
+				position: relative;
+			}
+
+			.project-readme li::before {
+				content: '•';
+				color: #4acaa8;
+				display: inline-block;
+				width: 1em;
+				margin-left: -1em;
+			}
+
+			.styled-list {
+				list-style: none;
+				padding-left: 1.5em;
+			}
+
+			.styled-list li {
+				position: relative;
+				margin-bottom: 0.5em;
+				padding-left: 0.5em;
+			}
+
+			.styled-list li::before {
+				content: '•';
+				color: #212931;
+				font-size: 1.2em;
+				position: absolute;
+				left: -0.8em;
+				top: -0.1em;
+			}
+
+			.project-readme code {
+				background-color: rgba(0, 0, 0, 0.05);
+				padding: 0.2rem 0.4rem;
+				border-radius: 3px;
+				font-family: monospace;
+				font-size: 0.9rem;
+				color: #4acaa8;
+			}
+
+			.project-readme pre code {
+				display: block;
+				padding: 1rem;
+				overflow-x: auto;
+				background-color: rgba(0, 0, 0, 0.05);
+				border-radius: 5px;
+				margin: 1rem 0;
+				border-left: 3px solid #4acaa8;
+			}
+
+			.project-readme a {
+				color: #4acaa8;
+				text-decoration: none;
+				border-bottom: 1px dotted rgba(74, 202, 168, 0.5);
+			}
+
+			.project-readme a:hover {
+				color: #3d4449;
+				border-bottom-color: #3d4449;
+			}
+
+			/* Project title styling */
+			.project-title {
+				letter-spacing: normal !important;
+				word-spacing: normal !important;
+			}
+
+			.project-title a {
+				letter-spacing: normal !important;
+				word-spacing: normal !important;
+			}
+
+			/* Loading message styling */
+			.loading-message {
+				text-align: center;
+				padding: 2rem 0;
+				color: rgba(61, 68, 73, 0.7);
+				font-style: italic;
+				position: relative;
+			}
+
+			.loading-message:after {
+				content: '.';
+				animation: dots 1.5s steps(5, end) infinite;
+			}
+
+			@keyframes dots {
+				0%, 20% { content: '.'; }
+				40% { content: '..'; }
+				60% { content: '...'; }
+				80%, 100% { content: ''; }
+			}
+		</style>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="home.html" class="logo">My Portfol.io</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="home.html">Home Page</a></li>
+							<li class="active"><a href="projects.html">Projects</a></li>
+							<li><a href="about.html">About Me</a></li>
+							<li><a href="contact.html">Get In Touch</a></li>
+						</ul>
+						<ul class="icons">
+							<li><a href="https://www.linkedin.com/in/tytusfelbor/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							<li><a href="https://github.com/TFelbor" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Featured Post -->
+							<article class="post featured">
+								<header class="major">
+									<h2>My Projects</h2>
+									<p>A collection of all my projects imported from GitHub</p>
+								</header>
+							</article>
+
+						<!-- Projects Grid -->
+							<section class="posts" id="projects-grid">
+								<!-- Will be populated by JavaScript -->
+								<div class="loading">Loading projects...</div>
+							</section>
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<section class="split contact">
+							<section class="alt">
+								<h3>Address</h3>
+								<p>Grajewska 15 <br />
+								Poznan, Poland 60-461</p>
+							</section>
+							<section>
+								<h3>Phone</h3>
+								<p><a href="tel:+48515426660">+48 515 426 660</a> <br />
+								<a href="tel:+12158631366">+1 (215) 863 1366</a></p>
+							</section>
+							<section>
+								<h3>Email</h3>
+								<p><a href="mailto:tytus.felbor@icloud.com">tytus.felbor@icloud.com</a></p>
+							</section>
+							<section>
+								<h3>Social</h3>
+								<ul class="icons alt">
+									<li><a href="https://www.linkedin.com/in/tytusfelbor/" class="icon brands alt fa-linkedin"><span class="label">LinkedIn</span></a></li>
+									<li><a href="https://github.com/TFelbor" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+								</ul>
+							</section>
+						</section>
+					</footer>
+
+				<!-- Copyright -->
+					<div id="copyright">
+						<ul><li>&copy; Tytus Felbor</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+					</div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+			<script src="assets/js/github-integration.js"></script>
+			<script>
+				// Function to convert markdown to HTML (improved version)
+				function markdownToHtml(markdown) {
+					if (!markdown) return '<p>No README content available.</p>';
+
+					// Normalize line endings
+					markdown = markdown.replace(/\r\n/g, '\n');
+
+					// Replace headers with more flexible regex to handle whitespace
+					let html = markdown
+						.replace(/^\s*#\s+(.*?)\s*$/gm, '<h1>$1</h1>')
+						.replace(/^\s*##\s+(.*?)\s*$/gm, '<h2>$1</h2>')
+						.replace(/^\s*###\s+(.*?)\s*$/gm, '<h3>$1</h3>')
+						.replace(/^\s*####\s+(.*?)\s*$/gm, '<h4>$1</h4>')
+						.replace(/^\s*#####\s+(.*?)\s*$/gm, '<h5>$1</h5>');
+
+					// Replace links
+					html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+					// Replace bold and italic
+					html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+					html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+					html = html.replace(/\_\_([^_]+)\_\_/g, '<strong>$1</strong>');
+					html = html.replace(/\_([^_]+)\_/g, '<em>$1</em>');
+
+					// Replace code blocks with language support
+					html = html.replace(/```([a-zA-Z]*)\n([\s\S]*?)```/g, function(match, language, code) {
+						return `<pre><code class="language-${language || 'text'}">${code.trim()}</code></pre>`;
+					});
+
+					// Replace inline code
+					html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+					// Process line by line for better list handling
+					const lines = html.split('\n');
+					let processedLines = [];
+					let inList = false;
+					let listItems = [];
+					let inOrderedList = false;
+
+					for (let i = 0; i < lines.length; i++) {
+						const line = lines[i];
+						const unorderedListMatch = line.match(/^\s*[\*\-]\s(.*)$/);
+						const orderedListMatch = line.match(/^\s*\d+\.\s(.*)$/);
+
+						if (unorderedListMatch) {
+							if (!inList || inOrderedList) {
+								// Close previous list if it was an ordered list
+								if (inList && inOrderedList) {
+									processedLines.push('<ol class="styled-list">' + listItems.join('') + '</ol>');
+									listItems = [];
+								}
+								inList = true;
+								inOrderedList = false;
+							}
+							listItems.push(`<li>${unorderedListMatch[1]}</li>`);
+						} else if (orderedListMatch) {
+							if (!inList || !inOrderedList) {
+								// Close previous list if it was an unordered list
+								if (inList && !inOrderedList) {
+									processedLines.push('<ul class="styled-list">' + listItems.join('') + '</ul>');
+									listItems = [];
+								}
+								inList = true;
+								inOrderedList = true;
+							}
+							listItems.push(`<li>${orderedListMatch[1]}</li>`);
+						} else {
+							// Not a list item, close any open list
+							if (inList) {
+								if (inOrderedList) {
+									processedLines.push('<ol class="styled-list">' + listItems.join('') + '</ol>');
+								} else {
+									processedLines.push('<ul class="styled-list">' + listItems.join('') + '</ul>');
+								}
+								listItems = [];
+								inList = false;
+							}
+							processedLines.push(line);
+						}
+					}
+
+					// Close any open list
+					if (inList) {
+						if (inOrderedList) {
+							processedLines.push('<ol class="styled-list">' + listItems.join('') + '</ol>');
+						} else {
+							processedLines.push('<ul class="styled-list">' + listItems.join('') + '</ul>');
+						}
+					}
+
+					// Join lines back together
+					html = processedLines.join('\n');
+
+					// Wrap paragraphs (text between blank lines that isn't already wrapped)
+					const paragraphs = html.split(/\n\n+/);
+					html = paragraphs.map(para => {
+						para = para.trim();
+						if (!para) return '';
+
+						// Skip wrapping if already an HTML element
+						if (para.startsWith('<') && !para.startsWith('<code')) {
+							return para;
+						}
+
+						return `<p>${para}</p>`;
+					}).join('\n\n');
+
+					// Add a class to the README content for styling
+					return `<div class="markdown-content">${html}</div>`;
+				}
+
+
+				// Add modal container to the DOM
+				function createModalContainer() {
+					const modalContainer = document.createElement('div');
+					modalContainer.id = 'project-modal';
+					modalContainer.className = 'project-modal';
+					document.body.appendChild(modalContainer);
+
+					// Close modal when clicking outside the content
+					modalContainer.addEventListener('click', function(e) {
+						if (e.target === modalContainer) {
+							closeProjectModal();
+						}
+					});
+
+					// Close modal when pressing Escape key
+					document.addEventListener('keydown', function(e) {
+						if (e.key === 'Escape') {
+							closeProjectModal();
+						}
+					});
+				}
+
+				// Show project modal with details
+				async function showProjectModal(projectId, repoName, branch) {
+					const modalContainer = document.getElementById('project-modal');
+
+					// Get project data
+					const projects = await fetchGitHubProjects();
+					if (!projects) return;
+
+					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects];
+					const project = allProjects.find(p => {
+						if (repoName === 'Portfolio') {
+							return p.name.includes('Portfolio - ') && p.branch === branch;
+						} else {
+							return p.name === repoName;
+						}
+					});
+
+					if (!project) return;
+
+					// Fetch README content
+					const readme = await fetchReadmeOnDemand(repoName, branch);
+
+					// Generate language tags HTML
+					const languageTags = project.languages ?
+						project.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
+						'';
+
+					// Generate technology tags HTML
+					const techTags = project.technologies ?
+						project.technologies.map(tech => `<span class="tech-tag">${tech}</span>`).join('') :
+						'';
+
+					// Show loading state first
+					modalContainer.innerHTML = `
+						<div class="project-details">
+							<span class="close-modal" onclick="closeProjectModal()">&times;</span>
+							<header>
+								<h2><span data-length="${(project.readmeTitle || project.name).length > 40 ? ((project.readmeTitle || project.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${project.readmeTitle || project.name}</span></h2>
+								<p class="project-description">${project.description || 'No description available'}</p>
+							</header>
+							<div class="tag-container">
+								${languageTags}
+							</div>
+							<div class="tag-container">
+								${techTags}
+							</div>
+							<div class="project-readme">
+								<p class="loading-message">Loading README content...</p>
+							</div>
+							<div class="modal-footer">
+								<ul class="actions special">
+									<li><a href="${project.html_url}" class="button primary" target="_blank">View on GitHub</a></li>
+									<li><button onclick="closeProjectModal()" class="button">Close</button></li>
+								</ul>
+							</div>
+						</div>
+					`;
+
+					// Show the modal
+					modalContainer.style.display = 'block';
+					document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+
+					// Get the README element and update it with content
+					const readmeElement = modalContainer.querySelector('.project-readme');
+					readmeElement.innerHTML = markdownToHtml(readme);
+				}
+
+				// Close project modal
+				function closeProjectModal() {
+					const modalContainer = document.getElementById('project-modal');
+					modalContainer.style.display = 'none';
+					document.body.style.overflow = ''; // Restore scrolling
+				}
+
+				// Replace the toggleProjectDetails function
+				async function toggleProjectDetails(projectId, repoName, branch) {
+					showProjectModal(projectId, repoName, branch);
+				}
+
+				// Initialize projects page
+				async function initializeProjectsPage() {
+					// Create modal container
+					createModalContainer();
+
+					const projectsGrid = document.getElementById('projects-grid');
+					const projects = await fetchGitHubProjects();
+
+					if (!projects) {
+						projectsGrid.innerHTML = '<p>Failed to load projects. Please try again later.</p>';
+						return;
+					}
+
+					// Combine all projects
+					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects];
+
+					// Generate HTML for each project
+					const projectsHTML = allProjects.map((project, index) => {
+						const projectId = `project-${index}`;
+
+						// Extract repository name correctly
+						let repoName, branch;
+						if (project.name.includes('Portfolio - ')) {
+							repoName = 'Portfolio';
+							// Extract branch name from the project name
+							branch = project.branch || project.name.replace('Portfolio - ', '');
+						} else {
+							repoName = project.name;
+							branch = 'main';
+						}
+
+						// Generate language tags HTML
+						const languageTags = project.languages ?
+							project.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
+							'';
+
+						// Generate technology tags HTML
+						const techTags = project.technologies ?
+							project.technologies.map(tech => `<span class="tech-tag">${tech}</span>`).join('') :
+							'';
+
+						return `
+							<article class="project-card">
+								<div class="project-card-content">
+									<header class="project-card-header">
+										<h2 class="project-title"><a href="${project.html_url}" data-length="${(project.readmeTitle || project.name).length > 40 ? ((project.readmeTitle || project.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${project.readmeTitle || project.name}</a></h2>
+									</header>
+									<div class="tag-container">
+										${languageTags}
+									</div>
+									<div class="project-card-description">
+										<p>${project.description || 'No description available'}</p>
+									</div>
+									<div class="tag-container">
+										${techTags}
+									</div>
+									<div class="project-card-footer">
+										<button id="toggle-button-${projectId}" class="button small toggle-details" onclick="toggleProjectDetails('${projectId}', '${repoName}', '${branch}')">Show Details</button>
+									</div>
+								</div>
+							</article>
+						`;
+					}).join('');
+
+					projectsGrid.innerHTML = projectsHTML || '<p>No projects found.</p>';
+				}
+
+				window.addEventListener('load', initializeProjectsPage);
+			</script>
+	</body>
+</html>

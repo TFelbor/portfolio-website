@@ -1,0 +1,21 @@
+Pages
+* Home Page (home.html)
+    ** headline should be the most recent project from github repository
+    ** followed in the grid of 2 by all the other projects from both various repositories & specifically portfolio repository from my profile
+* Projects (no file yet)
+    ** not implemented yet
+    ** should be a grid of all the projects from my profile
+    ** each project should have a description and be exapandable to show more details
+    ** each project should have the readme included in the github repository of that project
+    ** each project should have a link to the github repository of that project for code and more details
+* About Page (about.html)
+    ** not implemented yet
+    ** should be a short description of myself and my skills
+* Get In Touch Page (contact.html)
+    ** not implemented yet
+    ** should be a form to send me a message 
+    ** this should be the only page which implements the contact form
+    ** remove the twitter links
+* Elements Page
+    ** use this page to see the possible stylistic choices for the website & utilize them when needed
+
