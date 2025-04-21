@@ -448,7 +448,7 @@ async function fetchGitHubProjects() {
                     return {
                         name: `Portfolio - ${branch.name}`,
                         html_url: `https://github.com/TFelbor/Portfolio/tree/${encodeURIComponent(branch.name)}`,
-                        description: `Portfolio project - ${branch.name.replace(/_/g, ' ')}`,
+                        description: `From Portfolio Repository - ${branch.name.replace(/_/g, ' ')}`,
                         branch: branch.name,
                         readmeTitle: readmeTitle,
                         languages: languages,
