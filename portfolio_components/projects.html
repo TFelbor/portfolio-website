@@ -522,7 +522,7 @@
 					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects];
 					const project = allProjects.find(p => {
 						if (repoName === 'Portfolio') {
-							return p.name.includes('Portfolio - ') && p.branch === branch;
+							return p.branch === branch;
 						} else {
 							return p.name === repoName;
 						}
@@ -612,10 +612,10 @@
 
 						// Extract repository name correctly
 						let repoName, branch;
-						if (project.name.includes('Portfolio - ')) {
+						if (project.branch) {
 							repoName = 'Portfolio';
-							// Extract branch name from the project name
-							branch = project.branch || project.name.replace('Portfolio - ', '');
+							// Use the branch name directly
+							branch = project.branch;
 						} else {
 							repoName = project.name;
 							branch = 'main';

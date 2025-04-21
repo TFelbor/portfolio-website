@@ -441,14 +441,14 @@ async function fetchGitHubProjects() {
                 portfolioProjects = await Promise.all(filteredBranches.map(async branch => {
                     // Fetch README for this branch to get title and languages
                     const readme = await fetchReadmeOnDemand('Portfolio', branch.name);
-                    const readmeTitle = extractTitleFromReadme(readme) || `Portfolio - ${branch.name}`;
+                    const readmeTitle = extractTitleFromReadme(readme) || `${branch.name.replace(/_/g, ' ')}`;
                     const languages = determineProjectLanguages(branch.name, readme);
                     const technologies = determineProjectTechnologies(readme);
 
                     return {
-                        name: `Portfolio - ${branch.name}`,
+                        name: `${branch.name}`,
                         html_url: `https://github.com/TFelbor/Portfolio/tree/${encodeURIComponent(branch.name)}`,
-                        description: `From Portfolio Repository - ${branch.name.replace(/_/g, ' ')}`,
+                        description: `${branch.name.replace(/_/g, ' ')}`,
                         branch: branch.name,
                         readmeTitle: readmeTitle,
                         languages: languages,
@@ -505,7 +505,7 @@ function getFallbackProjectData() {
         },
         "portfolioProjects": [
             {
-                "name": "Portfolio - A_Star_Algorithm_Robotics_JAVA_C++",
+                "name": "A_Star_Algorithm_Robotics_JAVA_C++",
                 "html_url": "https://github.com/TFelbor/Portfolio/tree/A_Star_Algorithm_Robotics_JAVA_C++",
                 "description": "Implementation of A* pathfinding algorithm for robotics applications",
                 "branch": "A_Star_Algorithm_Robotics_JAVA_C++",
@@ -514,7 +514,7 @@ function getFallbackProjectData() {
                 "technologies": ["Robotics", "Algorithms", "Path Planning"]
             },
             {
-                "name": "Portfolio - Neural_Network_From_Scratch",
+                "name": "Neural_Network_From_Scratch",
                 "html_url": "https://github.com/TFelbor/Portfolio/tree/Neural_Network_From_Scratch",
                 "description": "Implementation of a neural network from scratch in Python",
                 "branch": "Neural_Network_From_Scratch",
@@ -523,7 +523,7 @@ function getFallbackProjectData() {
                 "technologies": ["NumPy", "Matplotlib", "Deep Learning", "Neural Networks"]
             },
             {
-                "name": "Portfolio - Blockchain_Implementation",
+                "name": "Blockchain_Implementation",
                 "html_url": "https://github.com/TFelbor/Portfolio/tree/Blockchain_Implementation",
                 "description": "Simple blockchain implementation with proof-of-work consensus",
                 "branch": "Blockchain_Implementation",
@@ -532,7 +532,7 @@ function getFallbackProjectData() {
                 "technologies": ["Flask", "Cryptography", "Blockchain", "Distributed Systems"]
             },
             {
-                "name": "Portfolio - Image_Processing_Algorithms",
+                "name": "Image_Processing_Algorithms",
                 "html_url": "https://github.com/TFelbor/Portfolio/tree/Image_Processing_Algorithms",
                 "description": "Collection of image processing algorithms implemented from scratch",
                 "branch": "Image_Processing_Algorithms",
@@ -541,7 +541,7 @@ function getFallbackProjectData() {
                 "technologies": ["NumPy", "OpenCV", "Matplotlib", "Computer Vision", "Image Processing"]
             },
             {
-                "name": "Portfolio - Data_Structures_And_Algorithms",
+                "name": "Data_Structures_And_Algorithms",
                 "html_url": "https://github.com/TFelbor/Portfolio/tree/Data_Structures_And_Algorithms",
                 "description": "Implementation of common data structures and algorithms",
                 "branch": "Data_Structures_And_Algorithms",
