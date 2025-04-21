@@ -171,9 +171,9 @@
 						const end = start + projectsPerPage;
 						const pageProjects = allProjects.slice(start, end);
 
-						// Scroll to top of projects section
+						// Only scroll to projects section if it's not the initial page load or if there's a hash in the URL
 						const projectsSection = document.getElementById('other-projects');
-						if (projectsSection) {
+						if (projectsSection && (window.location.hash || window.scrollY > 0)) {
 							setTimeout(() => {
 								projectsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 							}, 100);
