@@ -387,11 +387,7 @@ async function fetchGitHubProjects() {
             // Exclude user config repo, portfolio website, and welcome repos
             if (repo.name === 'TFelbor' ||
                 repo.name === 'portfolio-website' ||
-                repo.name === 'agno-agent-library' ||
-                repo.name === 'unwindai-resources' ||
-                repo.name === 'awesome-ai-agents' ||
-                repo.name.toLowerCase().includes('welcome') ||
-                repo.name == 'open-codex' ) {
+                repo.name.toLowerCase().includes('welcome')) {
                 return false;
             }
 
