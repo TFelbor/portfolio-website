@@ -391,7 +391,8 @@ async function fetchGitHubProjects() {
                 repo.name === 'AI_Resources' ||
                 repo.name === 'GPT_Me' ||
                 repo.name === 'awesome-ai-agents' ||
-                repo.name.toLowerCase().includes('welcome')) {
+                repo.name.toLowerCase().includes('welcome') ||
+                repo.name == 'open-codex' ) {
                 return false;
             }
 
