@@ -138,9 +138,31 @@
         font-size: 1.3rem !important;
     }
 
-    /* Make project title more compact */
+    /* Featured project title on mobile */
+    .post.featured header.major h2 a {
+        font-size: 1.5rem !important;
+    }
+
+    .post.featured header.major h2 a[data-length="long"],
+    .post.featured header.major h2 a[data-length="very-long"] {
+        font-size: 1.3rem !important;
+    }
+
+    /* Improve project title display */
     .project-title {
-        min-height: 50px !important;
+        min-height: auto !important;
+        padding: 0.3rem 0 !important;
+    }
+
+    .project-title h2 a {
+        font-size: 1.2rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .project-title h2 a[data-length="long"],
+    .project-title h2 a[data-length="very-long"] {
+        font-size: 1rem !important;
+        line-height: 1.1 !important;
     }
 
     /* Adjust footer for very small screens */

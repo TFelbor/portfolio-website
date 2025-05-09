@@ -139,7 +139,7 @@
 
 					const featuredHTML = `
 						<header class="major">
-							<h2><a href="${featuredProject.html_url}">${featuredProject.readmeTitle || featuredProject.name}</a></h2>
+							<h2><a href="${featuredProject.html_url}" data-length="${(featuredProject.readmeTitle || featuredProject.name).length > 40 ? ((featuredProject.readmeTitle || featuredProject.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${featuredProject.readmeTitle || featuredProject.name}</a></h2>
 							<p>${featuredProject.description || 'No description available'}</p>
 						</header>
 						<div class="tag-container">

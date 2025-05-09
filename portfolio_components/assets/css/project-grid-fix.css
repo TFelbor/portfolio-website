@@ -49,7 +49,7 @@
     width: 100%;
     padding: 1.5rem;
     box-sizing: border-box;
-    justify-content: space-between;
+    justify-content: flex-start; /* Changed from space-between to allow content to flow naturally */
 }
 
 /* Force equal heights for rows */
@@ -67,8 +67,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 120px; /* Ensure description area has minimum height */
-    overflow: hidden;
+    min-height: 100px; /* Reduced minimum height */
+    overflow: visible; /* Allow content to be fully visible */
+    margin: 0.5rem 0;
 }
 
 .project-card-description p {
@@ -90,38 +91,40 @@
 }
 
 .project-card-footer {
-    margin-top: auto;
+    margin-top: auto; /* Push to bottom of flex container */
     display: flex;
     justify-content: center;
-    padding-top: 1rem;
+    padding-top: 0.75rem;
 }
 
 .project-card-footer .actions.special {
     width: 100%;
     display: flex;
     justify-content: space-around;
+    flex-wrap: wrap; /* Allow buttons to wrap on very small screens */
+    gap: 0.5rem; /* Add gap between wrapped buttons */
 }
 
 /* Project title styles */
 .project-title {
     margin-bottom: 1rem;
-    min-height: 60px; /* Ensure consistent title height */
+    min-height: auto; /* Remove fixed height constraint */
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    max-height: 60px;
-    overflow: hidden;
+    max-height: none; /* Remove max height constraint */
+    overflow: visible; /* Allow content to be fully visible */
+    padding: 0.5rem 0;
 }
 
 .project-title h2 {
     margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-height: 3.9rem; /* 1.3 line-height * 2 lines * 1.5rem font-size */
+    width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    max-height: none; /* Remove max height constraint */
+    display: block; /* Use normal display instead of -webkit-box */
 }
 
 /* Responsive font sizing based on title length */
@@ -130,6 +133,8 @@
     line-height: 1.3;
     word-break: break-word;
     hyphens: auto;
+    display: inline-block;
+    width: 100%;
 }
 
 /* Smaller font for longer titles */
@@ -154,6 +159,20 @@
 .project-details h2 span {
     word-break: break-word;
     hyphens: auto;
+}
+
+/* Featured project title styles */
+.post.featured header.major h2 a {
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.post.featured header.major h2 a[data-length="long"] {
+    font-size: 1.8rem;
+}
+
+.post.featured header.major h2 a[data-length="very-long"] {
+    font-size: 1.6rem;
 }
 
 .project-title a {
@@ -208,29 +227,42 @@
 /* Media queries for responsive design */
 @media screen and (max-width: 980px) {
     #main > .posts > article, #projects-container > article {
-        padding: 2rem;
+        padding: 1.5rem;
         width: 50%;
-        min-height: 600px;
+        min-height: 580px;
     }
 
     .project-card {
-        min-height: 550px;
+        min-height: 530px;
     }
 
     .project-card-description {
-        min-height: 100px;
+        min-height: 90px;
     }
 
     .tag-container {
-        min-height: 70px;
+        min-height: 50px;
+    }
+
+    /* Adjust title font size for medium screens */
+    .project-title h2 a {
+        font-size: 1.4rem;
+    }
+
+    .project-title h2 a[data-length="long"] {
+        font-size: 1.2rem;
+    }
+
+    .project-title h2 a[data-length="very-long"] {
+        font-size: 1rem;
     }
 }
 
 @media screen and (max-width: 736px) {
     #main > .posts > article, #projects-container > article {
-        padding: 2rem;
+        padding: 1.5rem;
         width: 100%;
-        min-height: 550px;
+        min-height: 520px;
     }
 
     #main > .posts > article:nth-child(2n - 1), #projects-container > article:nth-child(2n - 1) {
@@ -250,14 +282,20 @@
     }
 
     .project-card {
-        min-height: 500px;
+        min-height: 480px;
     }
 
     .project-card-description {
-        min-height: 80px;
+        min-height: 70px;
     }
 
     .tag-container {
-        min-height: 60px;
+        min-height: 40px;
+        margin: 0.5rem 0;
+    }
+
+    /* Ensure buttons stack properly on small screens */
+    .project-card-footer .actions.special {
+        gap: 0.75rem;
     }
 }

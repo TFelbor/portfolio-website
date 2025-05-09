@@ -2495,17 +2495,7 @@ input, select, textarea {
 		}
 
 	select {
-/* Add these styles to your existing CSS */
-.project-title {
-    font-size: 1.5em;
-    line-height: 1.3;
-    margin: 0 0 1em 0;
-    height: 2.6em;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-}
+/* Project title styles moved to project-grid-fix.css */
 
 .pagination {
     width: 100%;
