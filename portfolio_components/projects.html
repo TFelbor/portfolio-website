@@ -534,9 +534,12 @@
 					const readme = await fetchReadmeOnDemand(repoName, branch);
 
 					// Generate language tags HTML
-					const languageTags = project.languages ?
-						project.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
-						'';
+					// Filter out the "MULTIPLE" tag
+					const filteredLanguages = project.languages ?
+						project.languages.filter(lang => lang !== 'MULTIPLE' && lang !== 'Multiple') :
+						[];
+					const languageTags = filteredLanguages.map(lang =>
+						`<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('');
 
 					// Generate technology tags HTML
 					const techTags = project.technologies ?
@@ -590,10 +593,33 @@
 					showProjectModal(projectId, repoName, branch);
 				}
 
+				// Function to clear GitHub data cache
+				function clearGitHubCache() {
+					// Get all localStorage keys
+					const keys = Object.keys(localStorage);
+
+					// Filter keys related to GitHub data
+					const githubKeys = keys.filter(key =>
+						key.startsWith('github_projects_') ||
+						key.startsWith('github_readme_')
+					);
+
+					// Remove each GitHub-related key
+					githubKeys.forEach(key => {
+						localStorage.removeItem(key);
+						console.log(`Cleared cache: ${key}`);
+					});
+
+					console.log('GitHub cache cleared');
+				}
+
 				// Initialize projects page
 				async function initializeProjectsPage() {
 					// Create modal container
 					createModalContainer();
+
+					// Clear the cache to ensure fresh data
+					clearGitHubCache();
 
 					const projectsGrid = document.getElementById('projects-grid');
 					const projects = await fetchGitHubProjects();
@@ -622,9 +648,12 @@
 						}
 
 						// Generate language tags HTML
-						const languageTags = project.languages ?
-							project.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
-							'';
+						// Filter out the "MULTIPLE" tag
+						const filteredLanguages = project.languages ?
+							project.languages.filter(lang => lang !== 'MULTIPLE' && lang !== 'Multiple') :
+							[];
+						const languageTags = filteredLanguages.map(lang =>
+							`<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('');
 
 						// Generate technology tags HTML
 						const techTags = project.technologies ?

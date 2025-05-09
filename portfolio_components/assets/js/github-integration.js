@@ -115,8 +115,12 @@ function determineProjectLanguages(projectName, readme) {
 
     // Add default language if none found
     if (languages.length === 0) {
+        // Special case for essay-classification-model-python
+        if (projectName === 'essay-classification-model-python') {
+            languages.push('Python');
+        }
         // Check for keywords in project name and readme
-        if (projectName.toUpperCase().includes('JAVA')) {
+        else if (projectName.toUpperCase().includes('JAVA')) {
             languages.push('Java');
         } else if (projectName.toUpperCase().includes('ALGORITHM') ||
             projectName.toUpperCase().includes('RUNTIME') ||
@@ -135,7 +139,16 @@ function determineProjectLanguages(projectName, readme) {
             (readme && readme.toLowerCase().includes('machine learning'))) {
             languages.push('Python');
         } else {
-            languages.push('Multiple');
+            // Use a more appropriate default language based on the project name
+            if (projectName.toLowerCase().includes('python')) {
+                languages.push('Python');
+            } else if (projectName.toLowerCase().includes('java')) {
+                languages.push('Java');
+            } else if (projectName.toLowerCase().includes('js') || projectName.toLowerCase().includes('javascript')) {
+                languages.push('JavaScript');
+            } else {
+                languages.push('Programming'); // Generic programming tag instead of "Multiple"
+            }
         }
     }
 
@@ -417,47 +430,11 @@ async function fetchGitHubProjects() {
         mostRecent.languages = mostRecentLanguages;
         mostRecent.technologies = mostRecentTechnologies;
 
-        // Find the Portfolio repository
-        const portfolioRepo = repos.find(repo => repo.name === 'Portfolio');
-        let portfolioProjects = [];
+        // Portfolio repository has been deleted, so we'll just use all repositories
+        let portfolioProjects = []; // Keep this empty array for backward compatibility
 
-        if (portfolioRepo) {
-            // Fetch branches for the Portfolio repository
-            const branchesResponse = await fetch(`https://api.github.com/repos/TFelbor/Portfolio/branches`);
-
-            if (branchesResponse.ok) {
-                const branches = await branchesResponse.json();
-
-                // Filter out the 'welcome' branch
-                const filteredBranches = branches.filter(branch =>
-                    !branch.name.toLowerCase().includes('welcome')
-                );
-
-                // Create project entries for each branch
-                portfolioProjects = await Promise.all(filteredBranches.map(async branch => {
-                    // Fetch README for this branch to get title and languages
-                    const readme = await fetchReadmeOnDemand('Portfolio', branch.name);
-                    const readmeTitle = extractTitleFromReadme(readme) || `${branch.name.replace(/_/g, ' ')}`;
-                    const languages = determineProjectLanguages(branch.name, readme);
-                    const technologies = determineProjectTechnologies(readme);
-
-                    return {
-                        name: `${branch.name}`,
-                        html_url: `https://github.com/TFelbor/Portfolio/tree/${encodeURIComponent(branch.name)}`,
-                        description: `${branch.name.replace(/_/g, ' ')}`,
-                        branch: branch.name,
-                        readmeTitle: readmeTitle,
-                        languages: languages,
-                        technologies: technologies
-                    };
-                }));
-            } else {
-                console.warn('Failed to fetch Portfolio branches:', branchesResponse.status);
-            }
-        }
-
-        // Filter out the Portfolio repository from other projects
-        const otherProjects = filteredRepos.filter(repo => repo.name !== 'Portfolio');
+        // Use all filtered repositories as projects
+        const otherProjects = filteredRepos;
 
         // Add title and languages to other projects
         for (const project of otherProjects) {
@@ -492,61 +469,23 @@ function getFallbackProjectData() {
 
     return {
         "mostRecent": {
-            "name": "ai-hedge-fund",
-            "html_url": "https://github.com/TFelbor/ai-hedge-fund",
-            "description": "AI-powered hedge fund simulation and strategy testing",
-            "readmeTitle": "AI Hedge Fund",
+            "name": "essay-classification-model-python",
+            "html_url": "https://github.com/TFelbor/essay-classification-model-python",
+            "description": "Machine learning model for classifying essays by topic and quality",
+            "readmeTitle": "Essay Classification Model",
             "languages": ["Python"],
-            "technologies": ["Machine Learning", "Financial APIs", "Statistical Analysis"]
+            "technologies": ["Machine Learning", "NLP", "Data Analysis"]
         },
-        "portfolioProjects": [
-            {
-                "name": "A_Star_Algorithm_Robotics_JAVA_C++",
-                "html_url": "https://github.com/TFelbor/Portfolio/tree/A_Star_Algorithm_Robotics_JAVA_C++",
-                "description": "Implementation of A* pathfinding algorithm for robotics applications",
-                "branch": "A_Star_Algorithm_Robotics_JAVA_C++",
-                "readmeTitle": "A* Algorithm for Robotics",
-                "languages": ["Java", "C++"],
-                "technologies": ["Robotics", "Algorithms", "Path Planning"]
-            },
-            {
-                "name": "Neural_Network_From_Scratch",
-                "html_url": "https://github.com/TFelbor/Portfolio/tree/Neural_Network_From_Scratch",
-                "description": "Implementation of a neural network from scratch in Python",
-                "branch": "Neural_Network_From_Scratch",
-                "readmeTitle": "Neural Network From Scratch",
-                "languages": ["Python"],
-                "technologies": ["NumPy", "Matplotlib", "Deep Learning", "Neural Networks"]
-            },
-            {
-                "name": "Blockchain_Implementation",
-                "html_url": "https://github.com/TFelbor/Portfolio/tree/Blockchain_Implementation",
-                "description": "Simple blockchain implementation with proof-of-work consensus",
-                "branch": "Blockchain_Implementation",
-                "readmeTitle": "Blockchain Implementation",
-                "languages": ["Python"],
-                "technologies": ["Flask", "Cryptography", "Blockchain", "Distributed Systems"]
-            },
-            {
-                "name": "Image_Processing_Algorithms",
-                "html_url": "https://github.com/TFelbor/Portfolio/tree/Image_Processing_Algorithms",
-                "description": "Collection of image processing algorithms implemented from scratch",
-                "branch": "Image_Processing_Algorithms",
-                "readmeTitle": "Image Processing Algorithms",
-                "languages": ["Python"],
-                "technologies": ["NumPy", "OpenCV", "Matplotlib", "Computer Vision", "Image Processing"]
-            },
-            {
-                "name": "Data_Structures_And_Algorithms",
-                "html_url": "https://github.com/TFelbor/Portfolio/tree/Data_Structures_And_Algorithms",
-                "description": "Implementation of common data structures and algorithms",
-                "branch": "Data_Structures_And_Algorithms",
-                "readmeTitle": "Data Structures and Algorithms",
-                "languages": ["Java", "C++", "Python"],
-                "technologies": ["Algorithms", "Data Structures", "Computer Science"]
-            }
-        ],
+        "portfolioProjects": [], // Empty array since Portfolio repository is deleted
         "otherProjects": [
+            {
+                "name": "essay-classification-model-python",
+                "html_url": "https://github.com/TFelbor/essay-classification-model-python",
+                "description": "Machine learning model for classifying essays by topic and quality",
+                "readmeTitle": "Essay Classification Model",
+                "languages": ["Python"],
+                "technologies": ["Machine Learning", "NLP", "Data Analysis"]
+            },
             {
                 "name": "ai-asset-eval-team",
                 "html_url": "https://github.com/TFelbor/ai-asset-eval-team",
@@ -607,22 +546,16 @@ async function fetchReadmeOnDemand(repoName, branch = 'main') {
         console.log(`Fetching README for ${repoName}/${branch}`);
 
         // Check if we have a fallback README first to avoid unnecessary network requests
-        const fallbackReadme = getFallbackReadme(repoName, branch);
+        const fallbackReadme = getFallbackReadme(repoName);
         if (fallbackReadme) {
-            console.log(`Using fallback README for ${repoName}/${branch}`);
+            console.log(`Using fallback README for ${repoName}`);
             // Cache the fallback README content
             localStorage.setItem(cacheKey, fallbackReadme);
             return fallbackReadme;
         }
 
-        let url;
-        if (repoName === 'Portfolio') {
-            // For Portfolio branches
-            url = `https://raw.githubusercontent.com/TFelbor/Portfolio/${encodeURIComponent(branch)}/README.md`;
-        } else {
-            // For regular repositories
-            url = `https://raw.githubusercontent.com/TFelbor/${repoName}/main/README.md`;
-        }
+        // For all repositories
+        const url = `https://raw.githubusercontent.com/TFelbor/${repoName}/main/README.md`;
 
         try {
             const response = await fetch(url);
@@ -655,9 +588,11 @@ async function fetchReadmeOnDemand(repoName, branch = 'main') {
 }
 
 // Fallback README content in case the GitHub API fails
-function getFallbackReadme(repoName, branch) {
+function getFallbackReadme(repoName) {
     // Hardcoded README content as fallback
     const readmeContent = {
+        "essay-classification-model-python": "# Essay Classification Model\n\nA machine learning model for classifying essays by topic and quality.\n\n## Features\n\n- Automated essay scoring\n- Topic classification\n- Quality assessment\n- Feedback generation\n- Batch processing capabilities\n\n## Technologies Used\n\n- Python\n- Natural Language Processing\n- Machine Learning\n- BERT and Transformer models\n- Scikit-learn\n- Pandas\n\n## Implementation Details\n\nThis project implements a sophisticated essay classification system that:\n\n- Preprocesses text data for analysis\n- Extracts meaningful features from essays\n- Applies transformer-based models for classification\n- Provides detailed scoring and feedback\n- Supports multiple classification criteria\n\n## Applications\n\nIdeal for:\n- Educational institutions\n- Online learning platforms\n- Writing assessment tools\n- Automated grading systems\n- Content quality evaluation",
+
         "A_Star_Algorithm_Robotics_JAVA_C++": "# A* Algorithm for Robotics\n\nThis project implements the A* pathfinding algorithm for robotics applications in both Java and C++.\n\n## Features\n\n- Efficient pathfinding for robot navigation\n- Obstacle avoidance\n- Optimized for real-time applications\n- Cross-platform implementation\n\n## Technologies Used\n\n- Java\n- C++\n- Robotics frameworks\n\n## Implementation Details\n\nThe A* algorithm is implemented with the following components:\n\n- Priority queue for efficient node selection\n- Heuristic function for distance estimation\n- Path reconstruction from goal to start\n- Visualization tools for debugging\n\n## Performance\n\nThe implementation has been optimized for performance and memory usage, making it suitable for real-time robotics applications. Benchmarks show it outperforms traditional Dijkstra's algorithm by 40-60% in typical scenarios.",
 
         "Neural_Network_From_Scratch": "# Neural Network From Scratch\n\nA complete implementation of a neural network without using any machine learning libraries.\n\n## Features\n\n- Fully connected feedforward neural network\n- Backpropagation algorithm\n- Various activation functions (ReLU, Sigmoid, Tanh)\n- Customizable network architecture\n- Batch training support\n\n## Technologies Used\n\n- Python\n- NumPy (for matrix operations only)\n- Matplotlib (for visualization)\n\n## Implementation Details\n\nThis project implements a neural network from first principles, including:\n\n- Forward propagation\n- Backpropagation for gradient calculation\n- Gradient descent optimization\n- Weight initialization techniques\n- Learning rate scheduling\n\n## Example Results\n\nThe network has been tested on several standard datasets:\n\n- MNIST (97.8% accuracy)\n- XOR problem (100% accuracy)\n- Simple regression tasks (low MSE)\n\nThe implementation provides insights into how neural networks function at a fundamental level.",
@@ -683,12 +618,6 @@ function getFallbackReadme(repoName, branch) {
         "DeepSeek-V3": "# DeepSeek V3\n\nAdvanced deep learning framework for complex tasks.\n\n## Features\n\n- State-of-the-art model architectures\n- Transfer learning capabilities\n- Multi-modal learning\n- Distributed training\n\n## Technologies Used\n\n- Python\n- PyTorch\n- CUDA\n- Distributed Computing"
     };
 
-    // Handle Portfolio branches differently
-    if (repoName === 'Portfolio') {
-        // For Portfolio branches, use the branch name as the key
-        return readmeContent[branch] || null;
-    } else {
-        // For regular repositories, use the repo name as the key
-        return readmeContent[repoName] || null;
-    }
+    // For all repositories, use the repo name as the key
+    return readmeContent[repoName] || null;
 }

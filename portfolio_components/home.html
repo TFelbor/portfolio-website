@@ -111,12 +111,35 @@
 			<script src="assets/js/main.js"></script>
 			<script src="assets/js/github-integration.js"></script>
 			<script>
+				// Function to clear GitHub data cache
+				function clearGitHubCache() {
+					// Get all localStorage keys
+					const keys = Object.keys(localStorage);
+
+					// Filter keys related to GitHub data
+					const githubKeys = keys.filter(key =>
+						key.startsWith('github_projects_') ||
+						key.startsWith('github_readme_')
+					);
+
+					// Remove each GitHub-related key
+					githubKeys.forEach(key => {
+						localStorage.removeItem(key);
+						console.log(`Cleared cache: ${key}`);
+					});
+
+					console.log('GitHub cache cleared');
+				}
+
 				async function initializeProjects() {
+					// Clear the cache to ensure fresh data
+					clearGitHubCache();
+
 					const projects = await fetchGitHubProjects();
 					if (!projects) return;
 
-					// Find the ai-asset-eval-team project
-					let featuredProject = projects.otherProjects.find(p => p.name === 'ai-asset-eval-team');
+					// Find the essay-classification-model-python project
+					let featuredProject = projects.otherProjects.find(p => p.name === 'essay-classification-model-python');
 
 					// If not found, fall back to mostRecent
 					if (!featuredProject) {
@@ -125,9 +148,12 @@
 
 					// Populate featured project
 					// Generate language tags HTML for featured project
-					const featuredLanguageTags = featuredProject.languages ?
-						featuredProject.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
-						'';
+					// Filter out the "MULTIPLE" tag
+					const filteredLanguages = featuredProject.languages ?
+						featuredProject.languages.filter(lang => lang !== 'MULTIPLE' && lang !== 'Multiple') :
+						[];
+					const featuredLanguageTags = filteredLanguages.map(lang =>
+						`<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('');
 
 					// Generate technology tags HTML for featured project
 					const featuredTechTags = featuredProject.technologies ?
@@ -156,7 +182,7 @@
 					document.getElementById('featured-project').innerHTML = featuredHTML;
 
 					// Combine all projects, excluding the featured project
-					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects.filter(p => p.name !== 'ai-asset-eval-team')];
+					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects.filter(p => p.name !== 'essay-classification-model-python')];
 
 					// Calculate pages
 					const projectsPerPage = 6;
@@ -187,9 +213,12 @@
 							const projectId = `home-project-${index}-${page}`;
 
 							// Generate language tags HTML
-							const languageTags = project.languages ?
-								project.languages.map(lang => `<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('') :
-								'';
+							// Filter out the "MULTIPLE" tag
+							const filteredLanguages = project.languages ?
+								project.languages.filter(lang => lang !== 'MULTIPLE' && lang !== 'Multiple') :
+								[];
+							const languageTags = filteredLanguages.map(lang =>
+								`<span class="language-tag" data-lang="${lang}">${lang}</span>`).join('');
 
 							// Generate technology tags HTML
 							const techTags = project.technologies ?
