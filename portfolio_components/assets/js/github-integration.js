@@ -1,3 +1,72 @@
+// Function to clear GitHub cache - no longer uses localStorage
+function clearGitHubCache() {
+    console.log('GitHub cache clearing function called - no localStorage caching is used');
+    // This function is kept for backward compatibility but no longer stores data in localStorage
+
+    // Clear browser cache for GitHub URLs
+    clearBrowserCache();
+}
+
+// Clear browser cache on initial load to ensure fresh data
+// Use a timeout to ensure this doesn't block page rendering
+setTimeout(clearBrowserCache, 100);
+
+// Function to format repository name for display
+function formatRepoNameForDisplay(repoName) {
+    if (!repoName) return '';
+
+    // Replace hyphens and underscores with spaces
+    let formattedName = repoName.replace(/[-_]/g, ' ');
+
+    // Convert to uppercase
+    formattedName = formattedName.toUpperCase();
+
+    return formattedName;
+}
+
+// Function to generate a cache-busting timestamp
+function clearBrowserCache() {
+    console.log('Clearing browser cache...');
+
+    // Try to clear browser cache for GitHub URLs if available
+    // But don't rely on this as it may cause CORS issues
+    try {
+        if (window.caches) {
+            console.log('Attempting to clear browser cache API...');
+            // We'll try to clear caches but won't wait for it to complete
+            // This avoids blocking the main thread and potential CORS issues
+            caches.keys().then(cacheNames => {
+                return Promise.all(
+                    cacheNames.map(cacheName => {
+                        console.log(`Clearing cache: ${cacheName}`);
+                        return caches.delete(cacheName);
+                    })
+                );
+            }).then(() => {
+                console.log('Browser caches cleared');
+            }).catch(err => {
+                console.error('Error clearing browser caches:', err);
+            });
+        }
+    } catch (e) {
+        console.log('Browser cache API not available or error:', e);
+    }
+
+    // Generate a unique timestamp for cache-busting
+    const timestamp = new Date().getTime();
+    console.log(`Cache-busting timestamp: ${timestamp}`);
+
+    return timestamp;
+}
+
+// Function to clear all GitHub-related cache (now just clears browser cache)
+function clearAllGitHubCache() {
+    console.log('Clearing all GitHub-related cache...');
+
+    // No longer using localStorage, just clear browser cache
+    return clearBrowserCache();
+}
+
 // Function to extract title from README content
 function extractTitleFromReadme(readme) {
     if (!readme) return null;
@@ -48,6 +117,57 @@ function extractTitleFromReadme(readme) {
     }
 
     return null;
+}
+
+// Function to extract content under the first H1 heading (before any H2 heading)
+function extractContentUnderFirstHeading(readme) {
+    if (!readme) return null;
+
+    // Helper function to clean and format content
+    function cleanContent(content) {
+        // Remove multiple spaces and trim
+        content = content.replace(/\s+/g, ' ').trim();
+
+        // Limit length for display purposes
+        if (content.length > 250) {
+            content = content.substring(0, 247) + '...';
+        }
+
+        return content;
+    }
+
+    // Find the position of the first H1 heading
+    const h1Match = readme.match(/^\s*#\s+([^\n]+)/m);
+    if (!h1Match) return null;
+
+    // Get the index where the H1 heading ends
+    const h1EndIndex = h1Match.index + h1Match[0].length;
+
+    // Find the position of the next heading (H2 or another H1)
+    const nextHeadingMatch = readme.substring(h1EndIndex).match(/^\s*#{1,2}\s+/m);
+
+    // Extract the content between the first H1 and the next heading
+    let content;
+    if (nextHeadingMatch) {
+        content = readme.substring(h1EndIndex, h1EndIndex + nextHeadingMatch.index).trim();
+    } else {
+        // If no next heading, take all content after the first H1
+        content = readme.substring(h1EndIndex).trim();
+
+        // Limit to a reasonable amount if there's no next heading
+        const lines = content.split('\n');
+        if (lines.length > 10) {
+            content = lines.slice(0, 10).join('\n').trim();
+        }
+    }
+
+    // Clean up the content
+    content = content.replace(/^\s*[\r\n]+/g, ''); // Remove leading empty lines
+
+    // If content is empty or just whitespace, return null
+    if (!content || content.trim() === '') return null;
+
+    return cleanContent(content);
 }
 
 // Function to determine languages for a project based on name and README
@@ -371,36 +491,69 @@ function handleForkedRepos() {
 
 async function fetchGitHubProjects() {
     try {
-        // Create a cache key based on the current date (refreshes daily)
-        const today = new Date().toISOString().split('T')[0];
-        const cacheKey = `github_projects_${today}`;
-
-        // Check if we have cached data
-        const cachedData = localStorage.getItem(cacheKey);
-        if (cachedData) {
-            console.log('Using cached GitHub data');
-            return JSON.parse(cachedData);
-        }
+        // Clear browser cache to ensure fresh data
+        const cacheBuster = clearBrowserCache();
+        console.log('Cleared browser cache to ensure fresh data');
 
         // Handle forked repositories
         handleForkedRepos();
 
         console.log('Fetching fresh data from GitHub API');
 
-        // Fetch all repositories
-        const reposResponse = await fetch('https://api.github.com/users/TFelbor/repos');
+        // Fetch all repositories with increased per_page parameter to get all repos in one request
+        // Add cache-busting parameter and cache control headers
+        console.log(`Fetching GitHub repos with cache-buster: ${cacheBuster}`);
+
+        // Use a simpler approach for GitHub API to avoid CORS issues
+        // Only add the cache-busting parameter in the URL
+        const reposResponse = await fetch(`https://api.github.com/users/TFelbor/repos?per_page=100&timestamp=${cacheBuster}`, {
+            method: 'GET',
+            mode: 'cors', // This is important for cross-origin requests
+            cache: 'no-store'
+            // Don't add custom headers that trigger preflight requests
+        });
         if (!reposResponse.ok) {
             throw new Error(`GitHub API error: ${reposResponse.status}`);
         }
 
         const repos = await reposResponse.json();
+        console.log(`Fetched ${repos.length} repositories from GitHub API`);
+
+        // Log all repository names for debugging
+        console.log('All repositories:', repos.map(repo => repo.name));
+
+        // Create a list of repositories to exclude
+        const excludedRepos = [
+            'TFelbor',                // User config repo
+            'portfolio-website',      // Portfolio website repo
+            'agno_library',           // Specified in requirements
+            'AI_Resources',           // Specified in requirements
+            'GPT_Me',                 // Specified in requirements
+            'awesome-ai-agents',       // Specified in requirements
+            'web-particle-simulator'
+        ];
+
+        // Create a list of repositories to ensure inclusion
+        const ensureIncluded = [
+            'timeo-java',
+            'skio-java',
+            'sorting-algs-runtime-analysis',
+            'parser-java',
+            'simple-uno-javafx',
+            'simple-stock-tracking-app-javafx'
+        ];
 
         // Filter out repositories to exclude
         const filteredRepos = repos.filter(repo => {
-            // Exclude user config repo, portfolio website, and welcome repos
-            if (repo.name === 'TFelbor' ||
-                repo.name === 'portfolio-website' ||
-                repo.name.toLowerCase().includes('welcome')) {
+            // Always include repositories from the ensureIncluded list
+            if (ensureIncluded.includes(repo.name)) {
+                console.log(`Ensuring inclusion of repository: ${repo.name}`);
+                return true;
+            }
+
+            // Check if repo name is in the excluded list
+            if (excludedRepos.includes(repo.name)) {
+                console.log(`Excluding repository: ${repo.name}`);
                 return false;
             }
 
@@ -413,20 +566,45 @@ async function fetchGitHubProjects() {
             return true;
         });
 
+        console.log(`After filtering, ${filteredRepos.length} repositories remain`);
+        console.log('Filtered repositories:', filteredRepos.map(repo => repo.name));
+
         // Sort repositories by last updated
         filteredRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
 
         // Get the most recent repository
         const mostRecent = filteredRepos[0];
+        console.log(`Most recent repository: ${mostRecent.name}`);
 
-        // Fetch README for most recent project to get title and languages
+        // Fetch README for most recent project to get content and languages
         const mostRecentReadme = await fetchReadmeOnDemand(mostRecent.name);
         const mostRecentTitle = extractTitleFromReadme(mostRecentReadme) || mostRecent.name;
+        const mostRecentContent = extractContentUnderFirstHeading(mostRecentReadme) || "No description available.";
         const mostRecentLanguages = determineProjectLanguages(mostRecent.name, mostRecentReadme);
         const mostRecentTechnologies = determineProjectTechnologies(mostRecentReadme);
 
         // Add title and languages to most recent project
         mostRecent.readmeTitle = mostRecentTitle;
+
+        // For ai-asset-eval-team, always use the specific title from the About section
+        if (mostRecent.name === "ai-asset-eval-team") {
+            mostRecent.title = "A.I. Enhanced Finance Dashboard";
+            mostRecent.description = mostRecentContent || "An AI-powered dashboard for comprehensive analysis of different financial securities including stocks, cryptocurrencies, REITs, and ETFs.";
+        } else {
+            // For other repositories, use the GitHub repository description (About section) as the project title
+            // Fall back to README title or formatted repo name if no description
+            mostRecent.title = mostRecent.description || mostRecentTitle || formatRepoNameForDisplay(mostRecent.name);
+
+            // Always use content under first heading from README as the description
+            // This ensures title and description are always different
+            mostRecent.description = mostRecentContent || "No description available.";
+
+            // If title and description are the same, modify the description to make it different
+            if (mostRecent.title === mostRecent.description) {
+                mostRecent.description = "Details: " + mostRecent.description;
+            }
+        }
+
         mostRecent.languages = mostRecentLanguages;
         mostRecent.technologies = mostRecentTechnologies;
 
@@ -439,9 +617,40 @@ async function fetchGitHubProjects() {
         // Add title and languages to other projects
         for (const project of otherProjects) {
             const readme = await fetchReadmeOnDemand(project.name);
-            project.readmeTitle = extractTitleFromReadme(readme) || project.name;
+            // Extract the README title and content
+            const readmeTitle = extractTitleFromReadme(readme) || project.name;
+            const readmeContent = extractContentUnderFirstHeading(readme) || "No description available.";
+
+            // Store the README title for reference
+            project.readmeTitle = readmeTitle;
+
+            // For ai-asset-eval-team, always use the specific title from the About section
+            if (project.name === "ai-asset-eval-team") {
+                project.title = "A.I. Enhanced Finance Dashboard";
+                project.description = readmeContent || "An AI-powered dashboard for comprehensive analysis of different financial securities including stocks, cryptocurrencies, REITs, and ETFs.";
+            } else {
+                // For other repositories, use the GitHub repository description (About section) as the project title
+                // Fall back to README title or formatted repo name if no description
+                project.title = project.description || readmeTitle || formatRepoNameForDisplay(project.name);
+
+                // Always use content under first heading from README as the description
+                // This ensures title and description are always different
+                project.description = readmeContent || "No description available.";
+
+                // If title and description are the same, modify the description to make it different
+                if (project.title === project.description) {
+                    project.description = "Details: " + project.description;
+                }
+            }
+
+
+            // Set languages and technologies
             project.languages = determineProjectLanguages(project.name, readme);
             project.technologies = determineProjectTechnologies(readme);
+
+            console.log(`Processed project ${project.name}:`);
+            console.log(`  Title: ${project.title}`);
+            console.log(`  Description: ${project.description}`);
         }
 
         // Prepare the result
@@ -451,14 +660,21 @@ async function fetchGitHubProjects() {
             otherProjects
         };
 
-        // Cache the result
-        localStorage.setItem(cacheKey, JSON.stringify(result));
+        // Don't cache the result to ensure fresh data on each page load
+        console.log('Using fresh GitHub data without caching');
 
         return result;
     } catch (error) {
         console.error('Error fetching GitHub projects:', error);
 
+        // Log more details about the error
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            console.warn('This is likely a CORS issue. The browser is blocking cross-origin requests from a local file.');
+            console.warn('Try using a local server or GitHub Pages to serve the website.');
+        }
+
         // Fallback to hardcoded data if API fails
+        console.log('Using fallback project data');
         return getFallbackProjectData();
     }
 }
@@ -471,33 +687,171 @@ function getFallbackProjectData() {
         "mostRecent": {
             "name": "essay-classification-model-python",
             "html_url": "https://github.com/TFelbor/essay-classification-model-python",
-            "description": "Machine learning model for classifying essays by topic and quality",
+            "title": "A machine learning model for classifying essays by topic and quality",
+            "description": "A machine learning model for classifying essays by topic and quality.",
             "readmeTitle": "Essay Classification Model",
             "languages": ["Python"],
             "technologies": ["Machine Learning", "NLP", "Data Analysis"]
         },
-        "portfolioProjects": [], // Empty array since Portfolio repository is deleted
         "otherProjects": [
             {
                 "name": "essay-classification-model-python",
                 "html_url": "https://github.com/TFelbor/essay-classification-model-python",
-                "description": "Machine learning model for classifying essays by topic and quality",
+                "title": "A machine learning model for classifying essays by topic and quality",
+                "description": "A machine learning model for classifying essays by topic and quality.",
                 "readmeTitle": "Essay Classification Model",
                 "languages": ["Python"],
                 "technologies": ["Machine Learning", "NLP", "Data Analysis"]
             },
             {
+                "name": "covid19-prediction-hmm-python",
+                "html_url": "https://github.com/TFelbor/covid19-prediction-hmm-python",
+                "title": "COVID-19 Case Prediction with Hidden Markov Models",
+                "description": "This repository contains a Python implementation of a Hidden Markov Model (HMM) for analyzing and predicting COVID-19 case trends based on historical monthly data.",
+                "readmeTitle": "CPSC444 : AI Project 2 - COVID-19 Case Prediction with Hidden Markov Models",
+                "languages": ["Python"],
+                "technologies": ["Machine Learning", "Statistical Modeling", "Data Analysis"]
+            },
+            {
+                "name": "timeo-java",
+                "html_url": "https://github.com/TFelbor/timeo-java",
+                "title": "A Java application for solving time-based orienteering problems",
+                "description": "A Java application for solving time-based orienteering problems.",
+                "readmeTitle": "Time-Based Orienteering Solver",
+                "languages": ["Java"],
+                "technologies": ["Algorithms", "Path Finding", "Optimization"]
+            },
+            {
+                "name": "skio-java",
+                "html_url": "https://github.com/TFelbor/skio-java",
+                "title": "A specialized path optimizer for ski orienteering competitions",
+                "description": "A specialized path optimizer for ski orienteering competitions.",
+                "readmeTitle": "Ski Orienteering Path Optimizer",
+                "languages": ["Java"],
+                "technologies": ["Algorithms", "Path Finding", "Optimization"]
+            },
+            {
+                "name": "aStar-robotics-java-cpp",
+                "html_url": "https://github.com/TFelbor/aStar-robotics-java-cpp",
+                "title": "A* pathfinding algorithm for robotics applications",
+                "description": "This project implements the A* pathfinding algorithm for robotics applications in both Java and C++.",
+                "readmeTitle": "A* for Robotics",
+                "languages": ["Java", "C++"],
+                "technologies": ["Algorithms", "Robotics", "Path Finding"]
+            },
+            {
+                "name": "act-cli-java",
+                "html_url": "https://github.com/TFelbor/act-cli-java",
+                "title": "Command-line interface tool implementing auto-completion using tree data structures",
+                "description": "A command-line interface tool implementing auto-completion using tree data structures.",
+                "readmeTitle": "Auto-Completion Tree",
+                "languages": ["Java"],
+                "technologies": ["Data Structures", "Algorithms", "CLI"]
+            },
+            {
+                "name": "sorting-algs-runtime-analysis",
+                "html_url": "https://github.com/TFelbor/sorting-algs-runtime-analysis",
+                "title": "Analysis of various sorting algorithm runtimes",
+                "description": "A comprehensive analysis of various sorting algorithm runtimes under different conditions.",
+                "readmeTitle": "Sorting Algorithms Analysis",
+                "languages": ["Java"],
+                "technologies": ["Algorithms", "Runtime Analysis", "Data Structures"]
+            },
+            {
+                "name": "parser-java",
+                "html_url": "https://github.com/TFelbor/parser-java",
+                "title": "Tool for generating parsing tables and implementing expression parsers",
+                "description": "A tool for generating parsing tables and implementing expression parsers.",
+                "readmeTitle": "Parsing Table Generator",
+                "languages": ["Java"],
+                "technologies": ["Compiler Design", "Parsing Algorithms", "Formal Languages"]
+            },
+            {
+                "name": "simple-uno-javafx",
+                "html_url": "https://github.com/TFelbor/simple-uno-javafx",
+                "title": "JavaFX implementation of a simplified UNO card game",
+                "description": "A JavaFX implementation of a simplified version of the UNO card game.",
+                "readmeTitle": "Simplified UNO Game",
+                "languages": ["Java"],
+                "technologies": ["JavaFX", "Game Development", "UI Design"]
+            },
+            {
+                "name": "simple-stock-tracking-app-javafx",
+                "html_url": "https://github.com/TFelbor/simple-stock-tracking-app-javafx",
+                "title": "A simple JavaFX application for tracking stocks and financial data",
+                "description": "This application provides a user-friendly interface for tracking stocks and analyzing financial data with customizable views and real-time updates.",
+                "readmeTitle": "Stock Tracking Application",
+                "languages": ["Java"],
+                "technologies": ["JavaFX", "Financial Data", "UI Design"]
+            },
+            {
+                "name": "basic-gui-app-javafx",
+                "html_url": "https://github.com/TFelbor/basic-gui-app-javafx",
+                "title": "Basic GUI application built with JavaFX",
+                "description": "A basic GUI application built with JavaFX demonstrating fundamental concepts.",
+                "readmeTitle": "JavaFX GUI Application",
+                "languages": ["Java"],
+                "technologies": ["JavaFX", "GUI", "Desktop Application"]
+            },
+            {
+                "name": "drl-td3-python",
+                "html_url": "https://github.com/TFelbor/drl-td3-python",
+                "title": "Implementation of the TD3 reinforcement learning algorithm",
+                "description": "An implementation of the Twin Delayed Deep Deterministic Policy Gradient (TD3) algorithm for reinforcement learning.",
+                "readmeTitle": "TD3 Reinforcement Learning",
+                "languages": ["Python"],
+                "technologies": ["Reinforcement Learning", "Deep Learning", "AI"]
+            },
+            {
+                "name": "dijkstra-java",
+                "html_url": "https://github.com/TFelbor/dijkstra-java",
+                "title": "Java implementation of Dijkstra's shortest path algorithm",
+                "description": "A Java implementation of Dijkstra's shortest path algorithm with visualizations.",
+                "readmeTitle": "Dijkstra's Algorithm Implementation",
+                "languages": ["Java"],
+                "technologies": ["Algorithms", "Graph Theory", "Path Finding"]
+            },
+            {
+                "name": "hangman-networked-java",
+                "html_url": "https://github.com/TFelbor/hangman-networked-java",
+                "title": "Client-server implementation of the Hangman game",
+                "description": "A client-server implementation of the classic Hangman game.",
+                "readmeTitle": "Networked Hangman Game",
+                "languages": ["Java"],
+                "technologies": ["Networking", "Game Development", "Client-Server"]
+            },
+            {
+                "name": "hex-ai-cpu-java",
+                "html_url": "https://github.com/TFelbor/hex-ai-cpu-java",
+                "title": "Implementation of the Hex board game with AI opponents",
+                "description": "An implementation of the Hex board game with AI opponents.",
+                "readmeTitle": "Hex Game with AI",
+                "languages": ["Java"],
+                "technologies": ["AI", "Game Theory", "Search Algorithms"]
+            },
+            {
+                "name": "leetCode-solutions",
+                "html_url": "https://github.com/TFelbor/leetCode-solutions",
+                "title": "Collection of solutions to LeetCode problems",
+                "description": "A collection of solutions to LeetCode problems implemented as terminal applications.",
+                "readmeTitle": "LeetCode Solutions",
+                "languages": ["Python"],
+                "technologies": ["Algorithms", "Data Structures", "Problem Solving"]
+            },
+            {
                 "name": "ai-asset-eval-team",
                 "html_url": "https://github.com/TFelbor/ai-asset-eval-team",
-                "description": "AI-powered asset evaluation tool",
+                "title": "AI Enhanced Finance Dashboard",
+                "description": "An AI-powered dashboard for comprehensive analysis of different financial securities including stocks, cryptocurrencies, REITs, and ETFs.",
                 "readmeTitle": "AI Asset Evaluation Team",
                 "languages": ["Python"],
-                "technologies": ["TensorFlow", "PyTorch", "Financial APIs", "Machine Learning", "Asset Evaluation"]
+                "technologies": ["TensorFlow", "PyTorch", "Financial APIs", "Machine Learning", "Data Visualization"]
             },
             {
                 "name": "asset-eval-team",
                 "html_url": "https://github.com/TFelbor/asset-eval-team",
-                "description": "Team-based asset evaluation platform",
+                "title": "Collaborative platform for team-based asset evaluation",
+                "description": "A collaborative platform for team-based asset evaluation and analysis.",
                 "readmeTitle": "Asset Evaluation Team",
                 "languages": ["Python", "JavaScript"],
                 "technologies": ["Machine Learning", "Financial Analysis", "Team Collaboration", "Asset Evaluation"]
@@ -505,16 +859,17 @@ function getFallbackProjectData() {
             {
                 "name": "python-trading-training",
                 "html_url": "https://github.com/TFelbor/python-trading-training",
-                "description": "Python scripts for algorithmic trading and backtesting",
+                "title": "Python scripts for algorithmic trading and backtesting",
+                "description": "A collection of Python scripts for algorithmic trading and backtesting.",
                 "readmeTitle": "Python Trading Training",
                 "languages": ["Python"],
                 "technologies": ["Pandas", "NumPy", "Matplotlib", "Trading", "Financial Analysis"]
             },
-
             {
                 "name": "ai-library",
                 "html_url": "https://github.com/TFelbor/ai-library",
-                "description": "Comprehensive library of AI algorithms and tools",
+                "title": "Comprehensive library of AI algorithms and tools",
+                "description": "A comprehensive library of AI algorithms and tools.",
                 "readmeTitle": "AI Library",
                 "languages": ["Python"],
                 "technologies": ["TensorFlow", "PyTorch", "Hugging Face", "Machine Learning", "Deep Learning"]
@@ -522,10 +877,20 @@ function getFallbackProjectData() {
             {
                 "name": "ai-financial-agent",
                 "html_url": "https://github.com/TFelbor/ai-financial-agent",
-                "description": "AI agent for financial analysis and decision making",
+                "title": "AI agent for financial analysis and decision making",
+                "description": "An AI agent for financial analysis and decision making.",
                 "readmeTitle": "AI Financial Agent",
                 "languages": ["Python"],
                 "technologies": ["Machine Learning", "Financial APIs", "Natural Language Processing", "Trading", "Decision Making"]
+            },
+            {
+                "name": "ai-hedge-fund",
+                "html_url": "https://github.com/TFelbor/ai-hedge-fund",
+                "title": "AI-powered hedge fund simulation and strategy testing",
+                "description": "AI-powered hedge fund simulation and strategy testing.",
+                "readmeTitle": "AI Hedge Fund",
+                "languages": ["Python"],
+                "technologies": ["Machine Learning", "Financial APIs", "Trading", "Strategy Testing"]
             }
         ]
     };
@@ -533,55 +898,102 @@ function getFallbackProjectData() {
 
 async function fetchReadmeOnDemand(repoName, branch = 'main') {
     try {
-        // Create a cache key for this specific README
-        const cacheKey = `github_readme_${repoName}_${branch}`;
-
-        // Check if we have cached README content
-        const cachedReadme = localStorage.getItem(cacheKey);
-        if (cachedReadme) {
-            console.log(`Using cached README for ${repoName}/${branch}`);
-            return cachedReadme;
-        }
-
         console.log(`Fetching README for ${repoName}/${branch}`);
 
-        // Check if we have a fallback README first to avoid unnecessary network requests
-        const fallbackReadme = getFallbackReadme(repoName);
-        if (fallbackReadme) {
-            console.log(`Using fallback README for ${repoName}`);
-            // Cache the fallback README content
-            localStorage.setItem(cacheKey, fallbackReadme);
-            return fallbackReadme;
-        }
+        // Clear browser cache first
+        clearBrowserCache();
 
-        // For all repositories
-        const url = `https://raw.githubusercontent.com/TFelbor/${repoName}/main/README.md`;
+        // Always try to fetch from GitHub first
+        // Use the provided branch parameter instead of hardcoding 'main'
+        const url = `https://raw.githubusercontent.com/TFelbor/${repoName}/${branch}/README.md`;
+        console.log(`Fetching from URL: ${url}`);
 
         try {
-            const response = await fetch(url);
+            // Add a cache-busting parameter to prevent browser caching
+            const cacheBuster = new Date().getTime() + Math.random().toString(36).substring(2, 15);
+            console.log(`Fetching README with cache-buster: ${cacheBuster}`);
+
+            // Use a simpler approach to avoid CORS issues
+            // Only add the cache-busting parameter in the URL
+            const response = await fetch(`${url}?timestamp=${cacheBuster}`, {
+                method: 'GET',
+                mode: 'cors', // This is important for cross-origin requests
+                cache: 'no-store',
+                redirect: 'follow' // Follow redirects automatically
+                // Don't add custom headers that trigger preflight requests
+            });
 
             if (response.ok) {
+                console.log(`Successfully fetched README for ${repoName}/${branch}`);
                 const readme = await response.text();
-
-                // Cache the README content
-                localStorage.setItem(cacheKey, readme);
-
                 return readme;
             } else {
                 console.warn(`Failed to fetch README for ${repoName}/${branch}:`, response.status);
-                // Fall back to hardcoded content if available, otherwise return a default message
+
+                // Try the master branch as a fallback if the specified branch failed
+                if (branch !== 'master') {
+                    console.log(`Trying master branch for ${repoName}`);
+                    try {
+                        // Generate a new cache buster for this request
+                        const newCacheBuster = new Date().getTime() + Math.random().toString(36).substring(2, 15);
+                        const masterUrl = `https://raw.githubusercontent.com/TFelbor/${repoName}/master/README.md?timestamp=${newCacheBuster}`;
+                        const masterResponse = await fetch(masterUrl, {
+                            method: 'GET',
+                            mode: 'cors', // This is important for cross-origin requests
+                            cache: 'no-store',
+                            redirect: 'follow' // Follow redirects automatically
+                            // Don't add custom headers that trigger preflight requests
+                        });
+
+                        if (masterResponse.ok) {
+                            console.log(`Successfully fetched README from master branch for ${repoName}`);
+                            const masterReadme = await masterResponse.text();
+                            return masterReadme;
+                        } else {
+                            console.warn(`Failed to fetch README from master branch for ${repoName}:`, masterResponse.status);
+                        }
+                    } catch (masterFetchError) {
+                        console.error(`Error fetching from master branch for ${repoName}:`, masterFetchError);
+                    }
+                }
+
+                // If both main and master branches fail, check for fallback README
+                console.log(`Checking for fallback README for ${repoName}`);
+                const fallbackReadme = getFallbackReadme(repoName);
+                if (fallbackReadme) {
+                    console.log(`Using fallback README for ${repoName}`);
+                    return fallbackReadme;
+                } else {
+                    console.log(`No fallback README found for ${repoName}`);
+                }
+
+                // If all else fails, return a default message
                 const defaultReadme = `# ${repoName.replace(/_/g, ' ')}\n\nNo README content available for this project.`;
-                localStorage.setItem(cacheKey, defaultReadme);
                 return defaultReadme;
             }
         } catch (fetchError) {
             console.error(`Network error fetching README for ${repoName}/${branch}:`, fetchError);
+
+            // Check for fallback README if fetch fails
+            const fallbackReadme = getFallbackReadme(repoName);
+            if (fallbackReadme) {
+                console.log(`Using fallback README for ${repoName} after network error`);
+                return fallbackReadme;
+            }
+
             const defaultReadme = `# ${repoName.replace(/_/g, ' ')}\n\nNo README content available for this project.`;
-            localStorage.setItem(cacheKey, defaultReadme);
             return defaultReadme;
         }
     } catch (error) {
         console.error(`Error in fetchReadmeOnDemand for ${repoName}/${branch}:`, error);
+
+        // Check for fallback README if there's an error
+        const fallbackReadme = getFallbackReadme(repoName);
+        if (fallbackReadme) {
+            console.log(`Using fallback README for ${repoName} after error`);
+            return fallbackReadme;
+        }
+
         const defaultReadme = `# ${repoName.replace(/_/g, ' ')}\n\nError loading README content.`;
         return defaultReadme;
     }
@@ -589,21 +1001,43 @@ async function fetchReadmeOnDemand(repoName, branch = 'main') {
 
 // Fallback README content in case the GitHub API fails
 function getFallbackReadme(repoName) {
+    console.log(`Looking for fallback README for repository: "${repoName}"`);
+
     // Hardcoded README content as fallback
     const readmeContent = {
         "essay-classification-model-python": "# Essay Classification Model\n\nA machine learning model for classifying essays by topic and quality.\n\n## Features\n\n- Automated essay scoring\n- Topic classification\n- Quality assessment\n- Feedback generation\n- Batch processing capabilities\n\n## Technologies Used\n\n- Python\n- Natural Language Processing\n- Machine Learning\n- BERT and Transformer models\n- Scikit-learn\n- Pandas\n\n## Implementation Details\n\nThis project implements a sophisticated essay classification system that:\n\n- Preprocesses text data for analysis\n- Extracts meaningful features from essays\n- Applies transformer-based models for classification\n- Provides detailed scoring and feedback\n- Supports multiple classification criteria\n\n## Applications\n\nIdeal for:\n- Educational institutions\n- Online learning platforms\n- Writing assessment tools\n- Automated grading systems\n- Content quality evaluation",
 
-        "A_Star_Algorithm_Robotics_JAVA_C++": "# A* Algorithm for Robotics\n\nThis project implements the A* pathfinding algorithm for robotics applications in both Java and C++.\n\n## Features\n\n- Efficient pathfinding for robot navigation\n- Obstacle avoidance\n- Optimized for real-time applications\n- Cross-platform implementation\n\n## Technologies Used\n\n- Java\n- C++\n- Robotics frameworks\n\n## Implementation Details\n\nThe A* algorithm is implemented with the following components:\n\n- Priority queue for efficient node selection\n- Heuristic function for distance estimation\n- Path reconstruction from goal to start\n- Visualization tools for debugging\n\n## Performance\n\nThe implementation has been optimized for performance and memory usage, making it suitable for real-time robotics applications. Benchmarks show it outperforms traditional Dijkstra's algorithm by 40-60% in typical scenarios.",
+        "covid19-prediction-hmm-python": "# CPSC444 : AI Project 2 - COVID-19 Case Prediction with Hidden Markov Models\n\nThis repository contains a Python implementation of a Hidden Markov Model (HMM) for analyzing and predicting COVID-19 case trends based on historical monthly data.\n\n## Features\n\n- Time series analysis of COVID-19 data\n- Hidden state inference\n- Prediction of future case numbers\n- Model validation and testing\n\n## Technologies Used\n\n- Python\n- Statistical Modeling\n- Hidden Markov Models\n- Data Analysis\n- Visualization\n\n## Implementation Details\n\nThis project uses Hidden Markov Models to analyze COVID-19 case data and predict future trends based on hidden state transitions.",
 
-        "Neural_Network_From_Scratch": "# Neural Network From Scratch\n\nA complete implementation of a neural network without using any machine learning libraries.\n\n## Features\n\n- Fully connected feedforward neural network\n- Backpropagation algorithm\n- Various activation functions (ReLU, Sigmoid, Tanh)\n- Customizable network architecture\n- Batch training support\n\n## Technologies Used\n\n- Python\n- NumPy (for matrix operations only)\n- Matplotlib (for visualization)\n\n## Implementation Details\n\nThis project implements a neural network from first principles, including:\n\n- Forward propagation\n- Backpropagation for gradient calculation\n- Gradient descent optimization\n- Weight initialization techniques\n- Learning rate scheduling\n\n## Example Results\n\nThe network has been tested on several standard datasets:\n\n- MNIST (97.8% accuracy)\n- XOR problem (100% accuracy)\n- Simple regression tasks (low MSE)\n\nThe implementation provides insights into how neural networks function at a fundamental level.",
+        "timeo-java": "# Time-Based Orienteering Solver\n\nA Java application for solving time-based orienteering problems.\n\n## Features\n\n- Optimal path finding with time constraints\n- Multiple algorithm implementations\n- Performance benchmarking\n- Visualization of solutions\n\n## Technologies Used\n\n- Java\n- Algorithms\n- Path Finding\n- Optimization\n\n## Implementation Details\n\nThis solver implements various algorithms to find optimal paths in orienteering problems with time constraints.",
 
-        "Blockchain_Implementation": "# Blockchain Implementation\n\nA simple but complete blockchain implementation with proof-of-work consensus.\n\n## Features\n\n- Blockchain data structure\n- Proof-of-work mining\n- Transaction validation\n- Cryptographic signing\n- Distributed consensus\n\n## Technologies Used\n\n- Python\n- Cryptography libraries\n- Flask (for API)\n- P2P networking\n\n## Implementation Details\n\nThis blockchain implementation includes:\n\n- Block structure with transactions, timestamp, and hash\n- Mining algorithm with adjustable difficulty\n- Merkle tree for transaction verification\n- Public/private key cryptography for transaction signing\n- Simple P2P network for node communication\n\n## Use Cases\n\nWhile this is an educational implementation, it demonstrates the core concepts behind cryptocurrencies and can be used for:\n\n- Learning blockchain fundamentals\n- Prototyping blockchain applications\n- Testing consensus algorithms",
+        "skio-java": "# Ski Orienteering Path Optimizer\n\nA specialized path optimizer for ski orienteering competitions.\n\n## Features\n\n- Terrain analysis\n- Optimal path calculation\n- Energy expenditure modeling\n- Weather condition integration\n\n## Technologies Used\n\n- Java\n- Algorithms\n- Path Finding\n- Optimization\n- Terrain Modeling\n\n## Implementation Details\n\nThis optimizer accounts for ski-specific factors like terrain, snow conditions, and energy expenditure to find optimal paths.",
 
-        "Image_Processing_Algorithms": "# Image Processing Algorithms\n\nA collection of image processing algorithms implemented from scratch.\n\n## Algorithms Implemented\n\n- Edge detection (Sobel, Canny)\n- Image filtering (Gaussian, Median)\n- Histogram equalization\n- Image segmentation\n- Feature extraction\n- Morphological operations\n\n## Technologies Used\n\n- Python\n- NumPy\n- OpenCV (for comparison only)\n- Matplotlib (for visualization)\n\n## Implementation Details\n\nEach algorithm is implemented without relying on existing image processing libraries, providing a deep understanding of how these algorithms work. The implementations include:\n\n- Mathematical foundations\n- Optimization techniques\n- Performance comparisons\n- Visual examples\n\n## Applications\n\nThese algorithms can be applied to various image processing tasks:\n\n- Medical image analysis\n- Computer vision systems\n- Image enhancement\n- Object detection\n- Pattern recognition",
+        "aStar-robotics-java-cpp": "# A* for Robotics\n\nThis project implements the A* pathfinding algorithm for robotics applications in both Java and C++.\n\n## Features\n\n- Efficient pathfinding for robot navigation\n- Obstacle avoidance\n- Optimized for real-time applications\n- Cross-platform implementation\n\n## Technologies Used\n\n- Java\n- C++\n- Robotics frameworks\n\n## Implementation Details\n\nThe A* algorithm is implemented with the following components:\n\n- Priority queue for efficient node selection\n- Heuristic function for distance estimation\n- Path reconstruction from goal to start\n- Visualization tools for debugging\n\n## Performance\n\nThe implementation has been optimized for performance and memory usage, making it suitable for real-time robotics applications. Benchmarks show it outperforms traditional Dijkstra's algorithm by 40-60% in typical scenarios.",
 
-        "Data_Structures_And_Algorithms": "# Data Structures and Algorithms\n\nComprehensive implementation of fundamental data structures and algorithms.\n\n## Data Structures\n\n- Arrays and Linked Lists\n- Stacks and Queues\n- Trees (Binary, AVL, Red-Black)\n- Graphs (Directed, Undirected)\n- Hash Tables\n- Heaps\n\n## Algorithms\n\n- Sorting (Quick, Merge, Heap, Bubble)\n- Searching (Binary, Depth-First, Breadth-First)\n- Dynamic Programming\n- Greedy Algorithms\n- Graph Algorithms (Dijkstra, Kruskal, Prim)\n\n## Technologies Used\n\n- Java\n- C++\n- Python\n\n## Implementation Details\n\nEach data structure and algorithm is implemented with:\n\n- Detailed comments explaining the approach\n- Time and space complexity analysis\n- Test cases for verification\n- Performance benchmarks\n\n## Educational Value\n\nThis project serves as a comprehensive reference for computer science fundamentals, suitable for:\n\n- Interview preparation\n- Algorithm study\n- Teaching materials\n- Performance comparisons",
+        "act-cli-java": "# Auto-Completion Tree\n\nA command-line interface tool implementing auto-completion using tree data structures.\n\n## Features\n\n- Fast auto-completion suggestions\n- Custom dictionary support\n- Memory-efficient implementation\n- Command history tracking\n\n## Technologies Used\n\n- Java\n- Data Structures\n- CLI\n- Algorithms\n\n## Implementation Details\n\nThis project uses specialized tree data structures to provide efficient auto-completion functionality in command-line interfaces.",
 
-        "ai-asset-eval-team": "# AI Asset Evaluation Team\n\nAn AI-powered tool for evaluating digital and physical assets.\n\n## Features\n\n- Automated asset valuation\n- Market trend analysis\n- Risk assessment\n- Portfolio optimization\n\n## Technologies Used\n\n- Python\n- TensorFlow\n- PyTorch\n- Financial APIs",
+        "sorting-algs-runtime-analysis": "# Sorting Algorithms Analysis\n\nA comprehensive analysis of various sorting algorithm runtimes under different conditions.\n\n## Features\n\n- Multiple sorting algorithm implementations\n- Performance benchmarking\n- Complexity analysis\n- Visualization of results\n\n## Technologies Used\n\n- Java\n- Algorithms\n- Runtime Analysis\n- Data Structures\n\n## Implementation Details\n\nThis project analyzes the performance characteristics of different sorting algorithms across various input sizes and distributions.",
+
+        "basic-gui-app-javafx": "# JavaFX GUI Application\n\nA basic GUI application built with JavaFX demonstrating fundamental concepts.\n\n## Features\n\n- Modern UI components\n- Event handling\n- Layout management\n- Data binding\n\n## Technologies Used\n\n- Java\n- JavaFX\n- GUI\n- Desktop Application\n\n## Implementation Details\n\nThis application demonstrates core JavaFX concepts and provides a foundation for building more complex desktop applications.",
+
+        "drl-td3-python": "# TD3 Reinforcement Learning\n\nAn implementation of the Twin Delayed Deep Deterministic Policy Gradient (TD3) algorithm for reinforcement learning.\n\n## Features\n\n- Continuous action space support\n- Twin Q-networks for reduced overestimation\n- Delayed policy updates\n- Target network smoothing\n\n## Technologies Used\n\n- Python\n- Reinforcement Learning\n- Deep Learning\n- PyTorch\n\n## Implementation Details\n\nThis project implements the TD3 algorithm, an advanced reinforcement learning approach that addresses key limitations in previous actor-critic methods.",
+
+        "dijkstra-java": "# Dijkstra's Algorithm Implementation\n\nA Java implementation of Dijkstra's shortest path algorithm with visualizations.\n\n## Features\n\n- Efficient shortest path finding\n- Graph visualization\n- Multiple graph representations\n- Performance optimizations\n\n## Technologies Used\n\n- Java\n- Algorithms\n- Graph Theory\n- Data Structures\n\n## Implementation Details\n\nThis implementation includes priority queue optimizations and supports various graph representations for different use cases.",
+
+        "hangman-networked-java": "# Networked Hangman Game\n\nA client-server implementation of the classic Hangman game.\n\n## Features\n\n- Multiplayer support\n- Client-server architecture\n- Custom word dictionaries\n- Game state synchronization\n\n## Technologies Used\n\n- Java\n- Networking\n- Multithreading\n- Game Development\n\n## Implementation Details\n\nThis project demonstrates network programming concepts through a multiplayer implementation of the Hangman game.",
+
+        "hex-ai-cpu-java": "# Hex Game with AI\n\nAn implementation of the Hex board game with AI opponents.\n\n## Features\n\n- Complete Hex game rules\n- Multiple AI difficulty levels\n- Monte Carlo Tree Search implementation\n- Game state visualization\n\n## Technologies Used\n\n- Java\n- AI\n- Game Theory\n- Search Algorithms\n\n## Implementation Details\n\nThis project implements the Hex board game with various AI opponents using different search strategies.",
+
+        "leetCode-solutions": "# LeetCode Solutions\n\nA collection of solutions to LeetCode problems implemented as terminal applications.\n\n## Features\n\n- Optimized algorithm implementations\n- Time and space complexity analysis\n- Test cases and examples\n- Command-line interfaces\n\n## Technologies Used\n\n- Python\n- Algorithms\n- Data Structures\n- Problem Solving\n\n## Implementation Details\n\nThis collection includes solutions to various LeetCode problems, with a focus on optimal algorithms and clear explanations.",
+
+        "parser-java": "# Parsing Table Generator\n\nA tool for generating parsing tables and implementing expression parsers.\n\n## Features\n\n- Grammar specification\n- First and Follow set calculation\n- LL(1) parsing table generation\n- Syntax tree visualization\n\n## Technologies Used\n\n- Java\n- Compiler Design\n- Parsing Algorithms\n- Formal Languages\n\n## Implementation Details\n\nThis project implements parsing table generation algorithms and provides tools for building expression parsers.",
+
+        "simple-uno-javafx": "# Simplified UNO Game\n\nA JavaFX implementation of a simplified version of the UNO card game.\n\n## Features\n\n- Core UNO game mechanics\n- Single and multiplayer modes\n- Custom card deck support\n- Game state visualization\n\n## Technologies Used\n\n- Java\n- JavaFX\n- Game Development\n- UI Design\n\n## Implementation Details\n\nThis project implements a simplified version of the UNO card game with a focus on clean architecture and user experience.",
+
+        "simple-stock-tracking-app-javafx": "# Stock Tracking Application\n\nA simple JavaFX application for tracking stocks and financial data.\n\n## Features\n\n- Real-time stock data display\n- Portfolio tracking\n- Performance visualization\n- Customizable watchlists\n\n## Technologies Used\n\n- Java\n- JavaFX\n- Financial APIs\n- Data Visualization\n\n## Implementation Details\n\nThis application provides a user-friendly interface for tracking stocks and analyzing financial data with customizable views and real-time updates.",
+
+        "ai-asset-eval-team": "# AI Asset Evaluation Team\n\nAn AI-powered dashboard for comprehensive analysis of different financial securities including stocks, cryptocurrencies, REITs, and ETFs.\n\n## Features\n\n- Comprehensive financial security analysis\n- Real-time market data integration\n- Advanced visualization tools\n- Risk assessment and portfolio optimization\n- Multi-asset class support\n\n## Technologies Used\n\n- Python\n- TensorFlow\n- PyTorch\n- Financial APIs\n- Data Visualization",
 
         "asset-eval-team": "# Asset Evaluation Team\n\nA collaborative platform for team-based asset evaluation and analysis.\n\n## Features\n\n- Team collaboration tools\n- Asset valuation workflows\n- Market analysis dashboards\n- Performance tracking\n- Report generation\n\n## Technologies Used\n\n- Python\n- JavaScript\n- React\n- Flask\n- Financial APIs\n- Machine Learning\n\n## Implementation Details\n\nThis platform enables teams to collaborate on asset evaluation with:\n\n- Real-time data sharing\n- Collaborative analysis tools\n- Version control for evaluations\n- Automated report generation\n- Performance metrics tracking\n\n## Applications\n\nIdeal for:\n\n- Investment teams\n- Financial analysts\n- Asset management firms\n- Portfolio managers\n- Risk assessment teams",
 
@@ -611,7 +1045,7 @@ function getFallbackReadme(repoName) {
 
         "ai-library": "# AI Library\n\nA comprehensive library of AI algorithms and tools.\n\n## Features\n\n- Machine learning algorithms\n- Deep learning models\n- Natural language processing tools\n- Computer vision utilities\n\n## Technologies Used\n\n- Python\n- TensorFlow\n- PyTorch\n- Hugging Face Transformers",
 
-        "ai-financial-agent": "# AI Financial Agent\n\nAn AI agent for financial analysis and decision making.\n\n## Features\n\n- Market analysis\n- Investment recommendations\n- Risk assessment\n- Portfolio management\n\n## Technologies Used\n\n- Python\n- Machine Learning\n- Financial APIs\n- Natural Language Processing",
+        "ai-financial-agent": "# AI Financial Agent\n\nAn advanced quantitative analysis platform combining machine learning, forensic accounting, and real-time market monitoring for stocks and cryptocurrencies.\n\n## Features\n\n- Market analysis and trend detection\n- Investment recommendations based on quantitative models\n- Risk assessment and portfolio optimization\n- Real-time monitoring of market conditions\n- Forensic accounting analysis for fraud detection\n\n## Technologies Used\n\n- Python\n- Machine Learning\n- Financial APIs\n- Natural Language Processing\n- Time Series Analysis\n- Quantitative Modeling",
 
         "ai-hedge-fund": "# AI Hedge Fund\n\nAI-powered hedge fund simulation and strategy testing.\n\n## Features\n\n- Market simulation\n- Strategy backtesting\n- Risk management\n- Performance analytics\n\n## Technologies Used\n\n- Python\n- Machine Learning\n- Financial APIs\n- Statistical Analysis",
 

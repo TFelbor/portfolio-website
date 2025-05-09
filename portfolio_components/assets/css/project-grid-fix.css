@@ -127,38 +127,41 @@
     display: block; /* Use normal display instead of -webkit-box */
 }
 
-/* Responsive font sizing based on title length */
+/* Improved responsive font sizing based on title length */
 .project-title h2 a {
     font-size: 1.5rem;
-    line-height: 1.3;
-    word-break: break-word;
+    line-height: 1.4;
+    word-break: normal;
     hyphens: auto;
     display: inline-block;
     width: 100%;
+    overflow-wrap: break-word;
+    padding: 0.25rem 0;
 }
 
-/* Smaller font for longer titles */
+/* Adjusted font for longer titles - less reduction to ensure readability */
 .project-title h2 a[data-length="long"] {
-    font-size: 1.3rem;
-    line-height: 1.25;
+    font-size: 1.4rem;
+    line-height: 1.35;
 }
 
-/* Even smaller font for very long titles */
+/* Adjusted font for very long titles - less reduction to ensure readability */
 .project-title h2 a[data-length="very-long"],
 .project-details h2 span[data-length="very-long"] {
-    font-size: 1.1rem;
-    line-height: 1.2;
+    font-size: 1.3rem;
+    line-height: 1.3;
 }
 
 /* Responsive font sizing for modal titles */
 .project-details h2 span[data-length="long"] {
-    font-size: 1.3rem;
-    line-height: 1.25;
+    font-size: 1.4rem;
+    line-height: 1.35;
 }
 
 .project-details h2 span {
-    word-break: break-word;
+    word-break: normal;
     hyphens: auto;
+    overflow-wrap: break-word;
 }
 
 /* Featured project title styles */

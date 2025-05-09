@@ -14,6 +14,7 @@
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<link rel="stylesheet" href="assets/css/project-tags.css" />
 		<link rel="stylesheet" href="assets/css/project-grid-fix.css" />
+		<link rel="stylesheet" href="assets/css/loading-animation.css" />
 		<link rel="stylesheet" href="assets/css/mobile-enhancements.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
@@ -111,32 +112,42 @@
 			<script src="assets/js/main.js"></script>
 			<script src="assets/js/github-integration.js"></script>
 			<script>
-				// Function to clear GitHub data cache
+				// Function to clear GitHub data cache - now just calls the function from github-integration.js
 				function clearGitHubCache() {
-					// Get all localStorage keys
-					const keys = Object.keys(localStorage);
-
-					// Filter keys related to GitHub data
-					const githubKeys = keys.filter(key =>
-						key.startsWith('github_projects_') ||
-						key.startsWith('github_readme_')
-					);
-
-					// Remove each GitHub-related key
-					githubKeys.forEach(key => {
-						localStorage.removeItem(key);
-						console.log(`Cleared cache: ${key}`);
-					});
-
-					console.log('GitHub cache cleared');
+					// This function is kept for backward compatibility
+					// It now just calls the clearBrowserCache function from github-integration.js
+					return clearBrowserCache();
 				}
 
-				async function initializeProjects() {
-					// Clear the cache to ensure fresh data
-					clearGitHubCache();
+				// Refresh functionality has been removed as it's redundant
 
+				async function initializeProjects() {
+					// Clear browser cache to ensure fresh data
+					clearBrowserCache();
+
+					// Show enhanced loading animation - single unified loading indicator
+					const loadingHTML = `
+						<article style="width: 100%; display: flex; justify-content: center; align-items: center;">
+							<div class="loading-container">
+								<div class="loading-spinner">
+									<div></div><div></div><div></div><div></div>
+								</div>
+								<div class="loading-text loading-pulse">Loading Projects from GitHub</div>
+								<div class="loading-subtext">Fetching the latest repository data and READMEs...</div>
+							</div>
+						</article>
+					`;
+					document.getElementById('featured-project').innerHTML = loadingHTML;
+					document.getElementById('other-projects').innerHTML = '';
+
+					// Fetch fresh data from GitHub
+					console.log('Fetching fresh project data for home page');
 					const projects = await fetchGitHubProjects();
-					if (!projects) return;
+					if (!projects) {
+						document.getElementById('featured-project').innerHTML = '<p>Failed to load projects. Please try again later.</p>';
+						document.getElementById('other-projects').innerHTML = '';
+						return;
+					}
 
 					// Find the essay-classification-model-python project
 					let featuredProject = projects.otherProjects.find(p => p.name === 'essay-classification-model-python');
@@ -165,7 +176,7 @@
 
 					const featuredHTML = `
 						<header class="major">
-							<h2><a href="${featuredProject.html_url}" data-length="${(featuredProject.readmeTitle || featuredProject.name).length > 40 ? ((featuredProject.readmeTitle || featuredProject.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${featuredProject.readmeTitle || featuredProject.name}</a></h2>
+							<h2><a href="${featuredProject.html_url}" data-length="${(featuredProject.title || '').length > 40 ? ((featuredProject.title || '').length > 50 ? 'very-long' : 'long') : 'normal'}">${featuredProject.title || formatRepoNameForDisplay(featuredProject.name)}</a></h2>
 							<p>${featuredProject.description || 'No description available'}</p>
 						</header>
 						<div class="tag-container">
@@ -230,7 +241,7 @@
 								<div class="project-card">
 									<div class="project-card-content">
 										<header class="project-card-header">
-											<h2 class="project-title"><a href="${project.html_url}" data-length="${(project.readmeTitle || project.name).length > 40 ? ((project.readmeTitle || project.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${project.readmeTitle || project.name}</a></h2>
+											<h2 class="project-title"><a href="${project.html_url}" data-length="${(project.title || '').length > 40 ? ((project.title || '').length > 50 ? 'very-long' : 'long') : 'normal'}">${project.title || formatRepoNameForDisplay(project.name)}</a></h2>
 										</header>
 										<div class="tag-container">
 											${languageTags}
@@ -285,8 +296,20 @@
 						// Force scroll to top
 						window.scrollTo(0, 0);
 
+						// Clear any existing cache
+						clearBrowserCache();
+
 						// Initialize projects after a small delay to ensure proper order
 						setTimeout(initializeProjects, 100);
+					});
+
+					// Also refresh data when the page becomes visible again (e.g., after tab switch)
+					document.addEventListener('visibilitychange', function() {
+						if (!document.hidden) {
+							console.log('Page became visible, refreshing data...');
+							clearBrowserCache();
+							initializeProjects();
+						}
 					});
 			</script>
 

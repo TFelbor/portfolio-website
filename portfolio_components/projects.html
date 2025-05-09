@@ -14,6 +14,7 @@
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<link rel="stylesheet" href="assets/css/project-tags.css" />
 		<link rel="stylesheet" href="assets/css/project-grid-fix.css" />
+		<link rel="stylesheet" href="assets/css/loading-animation.css" />
 		<link rel="stylesheet" href="assets/css/mobile-enhancements.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 		<style>
@@ -207,6 +208,35 @@
 				margin-left: -1em;
 			}
 
+			/* Fix for list styling in README content */
+			.project-readme ul.styled-list li::before {
+				content: '•';
+				color: #4acaa8;
+				display: inline-block;
+				width: 1em;
+				margin-left: -1em;
+				position: absolute;
+				left: 0;
+			}
+
+			.project-readme ol.styled-list {
+				counter-reset: item;
+			}
+
+			.project-readme ol.styled-list li {
+				counter-increment: item;
+			}
+
+			.project-readme ol.styled-list li::before {
+				content: counter(item) ".";
+				color: #4acaa8;
+				display: inline-block;
+				width: 1.5em;
+				margin-left: -1.5em;
+				position: absolute;
+				left: 0;
+			}
+
 			.styled-list {
 				list-style: none;
 				padding-left: 1.5em;
@@ -255,6 +285,48 @@
 			.project-readme a:hover {
 				color: #3d4449;
 				border-bottom-color: #3d4449;
+			}
+
+			/* Additional styling for README content */
+			.markdown-content {
+				line-height: 1.6;
+				color: #3d4449;
+			}
+
+			.markdown-content p {
+				margin-bottom: 1rem;
+			}
+
+			.markdown-content img {
+				max-width: 100%;
+				height: auto;
+				margin: 1rem 0;
+				border-radius: 4px;
+			}
+
+			.markdown-content table {
+				width: 100%;
+				border-collapse: collapse;
+				margin: 1rem 0;
+			}
+
+			.markdown-content table th,
+			.markdown-content table td {
+				border: 1px solid #ddd;
+				padding: 0.5rem;
+			}
+
+			.markdown-content table th {
+				background-color: #f5f5f5;
+				font-weight: bold;
+			}
+
+			.markdown-content blockquote {
+				border-left: 3px solid #4acaa8;
+				padding-left: 1rem;
+				margin-left: 0;
+				color: #666;
+				font-style: italic;
 			}
 
 			/* Project title styling */
@@ -322,6 +394,7 @@
 								<header class="major">
 									<h2>My Projects</h2>
 									<p>A collection of all my projects imported from GitHub</p>
+
 								</header>
 							</article>
 
@@ -515,9 +588,37 @@
 				async function showProjectModal(projectId, repoName, branch) {
 					const modalContainer = document.getElementById('project-modal');
 
-					// Get project data
+					// Clear browser cache first to ensure fresh data
+					clearBrowserCache();
+
+					// Show loading state immediately
+					modalContainer.innerHTML = `
+						<div class="project-details">
+							<span class="close-modal" onclick="closeProjectModal()">&times;</span>
+							<header>
+								<h2>Loading Project Details...</h2>
+							</header>
+							<div class="project-readme">
+								<p class="loading-message">Fetching latest data from GitHub...</p>
+							</div>
+							<div class="modal-footer">
+								<ul class="actions special">
+									<li><button onclick="closeProjectModal()" class="button">Close</button></li>
+								</ul>
+							</div>
+						</div>
+					`;
+
+					// Show the modal while data is loading
+					modalContainer.style.display = 'block';
+					document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+
+					// Get fresh project data
 					const projects = await fetchGitHubProjects();
-					if (!projects) return;
+					if (!projects) {
+						modalContainer.querySelector('.project-readme').innerHTML = '<p>Failed to load project data. Please try again later.</p>';
+						return;
+					}
 
 					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects];
 					const project = allProjects.find(p => {
@@ -528,9 +629,34 @@
 						}
 					});
 
-					if (!project) return;
+					if (!project) {
+						modalContainer.querySelector('.project-readme').innerHTML = '<p>Project not found. It may have been removed or renamed.</p>';
+						return;
+					}
 
-					// Fetch README content
+					// Update loading state with project info
+					modalContainer.innerHTML = `
+						<div class="project-details">
+							<span class="close-modal" onclick="closeProjectModal()">&times;</span>
+							<header>
+								<h2><span data-length="${(project.title || '').length > 40 ? ((project.title || '').length > 50 ? 'very-long' : 'long') : 'normal'}">${project.title || formatRepoNameForDisplay(project.name)}</span></h2>
+								<p class="project-description">${project.description || 'No description available'}</p>
+							</header>
+							<div class="project-readme">
+								<p class="loading-message">Fetching latest README content directly from GitHub...</p>
+							</div>
+							<div class="modal-footer">
+								<ul class="actions special">
+									<li><a href="${project.html_url}" class="button primary" target="_blank">View on GitHub</a></li>
+									<li><button onclick="closeProjectModal()" class="button">Close</button></li>
+								</ul>
+							</div>
+						</div>
+					`;
+
+					// Fetch README content directly from GitHub
+					// Use a fresh fetch to ensure we get the latest content
+					console.log(`Fetching fresh README for ${repoName}/${branch}`);
 					const readme = await fetchReadmeOnDemand(repoName, branch);
 
 					// Generate language tags HTML
@@ -546,14 +672,10 @@
 						project.technologies.map(tech => `<span class="tech-tag">${tech}</span>`).join('') :
 						'';
 
-					// Show loading state first
+					// Update the modal with complete content - without duplicate title/description
 					modalContainer.innerHTML = `
 						<div class="project-details">
 							<span class="close-modal" onclick="closeProjectModal()">&times;</span>
-							<header>
-								<h2><span data-length="${(project.readmeTitle || project.name).length > 40 ? ((project.readmeTitle || project.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${project.readmeTitle || project.name}</span></h2>
-								<p class="project-description">${project.description || 'No description available'}</p>
-							</header>
 							<div class="tag-container">
 								${languageTags}
 							</div>
@@ -561,7 +683,7 @@
 								${techTags}
 							</div>
 							<div class="project-readme">
-								<p class="loading-message">Loading README content...</p>
+								${markdownToHtml(readme)}
 							</div>
 							<div class="modal-footer">
 								<ul class="actions special">
@@ -571,14 +693,6 @@
 							</div>
 						</div>
 					`;
-
-					// Show the modal
-					modalContainer.style.display = 'block';
-					document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
-
-					// Get the README element and update it with content
-					const readmeElement = modalContainer.querySelector('.project-readme');
-					readmeElement.innerHTML = markdownToHtml(readme);
 				}
 
 				// Close project modal
@@ -593,24 +707,11 @@
 					showProjectModal(projectId, repoName, branch);
 				}
 
-				// Function to clear GitHub data cache
+				// Function to clear GitHub data cache - now just calls the function from github-integration.js
 				function clearGitHubCache() {
-					// Get all localStorage keys
-					const keys = Object.keys(localStorage);
-
-					// Filter keys related to GitHub data
-					const githubKeys = keys.filter(key =>
-						key.startsWith('github_projects_') ||
-						key.startsWith('github_readme_')
-					);
-
-					// Remove each GitHub-related key
-					githubKeys.forEach(key => {
-						localStorage.removeItem(key);
-						console.log(`Cleared cache: ${key}`);
-					});
-
-					console.log('GitHub cache cleared');
+					// This function is kept for backward compatibility
+					// It now just calls the clearBrowserCache function from github-integration.js
+					return clearBrowserCache();
 				}
 
 				// Initialize projects page
@@ -618,10 +719,25 @@
 					// Create modal container
 					createModalContainer();
 
-					// Clear the cache to ensure fresh data
-					clearGitHubCache();
+					// Clear browser cache to ensure fresh data
+					clearBrowserCache();
 
+					// Show enhanced loading animation
 					const projectsGrid = document.getElementById('projects-grid');
+					projectsGrid.innerHTML = `
+						<article style="width: 100%; display: flex; justify-content: center; align-items: center;">
+							<div class="loading-container">
+								<div class="loading-spinner">
+									<div></div><div></div><div></div><div></div>
+								</div>
+								<div class="loading-text loading-pulse">Loading Projects from GitHub</div>
+								<div class="loading-subtext">Fetching the latest repository data and READMEs...</div>
+							</div>
+						</article>
+					`;
+
+					// Fetch fresh data from GitHub
+					console.log('Fetching fresh project data for projects page');
 					const projects = await fetchGitHubProjects();
 
 					if (!projects) {
@@ -631,6 +747,8 @@
 
 					// Combine all projects
 					const allProjects = [...projects.portfolioProjects, ...projects.otherProjects];
+
+					// Removed updateRefreshTime call as the refresh functionality has been removed
 
 					// Generate HTML for each project
 					const projectsHTML = allProjects.map((project, index) => {
@@ -664,7 +782,7 @@
 							<article class="project-card">
 								<div class="project-card-content">
 									<header class="project-card-header">
-										<h2 class="project-title"><a href="${project.html_url}" data-length="${(project.readmeTitle || project.name).length > 40 ? ((project.readmeTitle || project.name).length > 50 ? 'very-long' : 'long') : 'normal'}">${project.readmeTitle || project.name}</a></h2>
+										<h2 class="project-title"><a href="${project.html_url}" data-length="${(project.title || '').length > 40 ? ((project.title || '').length > 50 ? 'very-long' : 'long') : 'normal'}">${project.title || formatRepoNameForDisplay(project.name)}</a></h2>
 									</header>
 									<div class="tag-container">
 										${languageTags}
@@ -686,7 +804,25 @@
 					projectsGrid.innerHTML = projectsHTML || '<p>No projects found.</p>';
 				}
 
-				window.addEventListener('load', initializeProjectsPage);
+				// Refresh functionality has been removed as it's redundant
+
+				// Initialize on page load
+				window.addEventListener('load', function() {
+					// Clear any existing cache
+					clearBrowserCache();
+
+					// Initialize projects
+					initializeProjectsPage();
+				});
+
+				// Also refresh data when the page becomes visible again (e.g., after tab switch)
+				document.addEventListener('visibilitychange', function() {
+					if (!document.hidden) {
+						console.log('Page became visible, refreshing data...');
+						clearBrowserCache();
+						initializeProjectsPage();
+					}
+				});
 			</script>
 	</body>
 </html>
